@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Page Transition Wipe (identical to landing navbar transition) */
+.app-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #4B3DFF;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  clip-path: inset(100% 0 0 0);
+  pointer-events: none;
+  font-family: "Bricolage Grotesque", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.app-wipe__label {
+  font-size: clamp(3rem, 12vw, 10rem);
+  font-weight: 560;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variation-settings: "opsz" 96, "wdth" 90;
+}
