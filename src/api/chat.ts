@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { auditCode } from '../../src/server/securityAudit';
+import { handleAgentChat } from '../server/agentChat';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;
@@ -39,17 +39,26 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
   }
 
   const body = parseRequestBody(req);
-  const files = Array.isArray(body?.files) ? body.files : [];
-  const specContext = body?.specification;
+  const message = typeof body?.message === 'string' ? body.message.trim() : '';
+  const currentFile = typeof body?.currentFile === 'string' ? body.currentFile : 'VaultCore.sol';
+  const currentCode = typeof body?.currentCode === 'string' ? body.currentCode : '';
+  const projectContext = body?.projectContext;
+
+  if (!message) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Message cannot be empty.' }));
+    return;
+  }
 
   try {
-    const auditResult = await auditCode(files, specContext);
+    const response = await handleAgentChat(message, currentFile, currentCode, projectContext);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(auditResult));
+    res.end(JSON.stringify(response));
   } catch (error) {
-    console.error('Security audit handler failed in Vercel function:', error);
-    const errMessage = error instanceof Error ? error.message : 'Security audit agent encountered an error.';
+    console.error('Agent chat handler failed in Vercel function:', error);
+    const errMessage = error instanceof Error ? error.message : 'Agent encountered an error while processing your request.';
     res.statusCode = 502;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: errMessage }));

@@ -32,6 +32,22 @@ export function initWorkspace(
     return bubbleHTML('agent', '<span class="typing"><span></span><span></span><span></span></span>');
   }
 
+  async function safeFetchJson(url, fetchOptions) {
+    var resp = await fetch(url, fetchOptions);
+    var raw = await resp.text();
+    var parsed = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      var snippet = raw.slice(0, 140).replace(/<[^>]+>/g, '').trim();
+      throw new Error(snippet || ('Server returned HTTP ' + resp.status));
+    }
+    if (!resp.ok) {
+      throw new Error(parsed && parsed.error ? parsed.error : ('Server returned HTTP ' + resp.status));
+    }
+    return parsed;
+  }
+
   // Clear previous monitoring intervals if any were active
   if (window._x0aMonInterval) {
     clearInterval(window._x0aMonInterval);
@@ -940,7 +956,7 @@ export function initWorkspace(
     var currentCode = getSource(activeFile);
 
     try {
-      var response = await fetch('/api/agent/chat', {
+      var result = await safeFetchJson('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -950,7 +966,6 @@ export function initWorkspace(
           projectContext: currentProject
         })
       });
-      var result = await response.json();
       if (typingEl) typingEl.remove();
 
       var diffActionHtml = '';
@@ -1194,7 +1209,7 @@ export function initWorkspace(
       });
 
       try {
-        var response = await fetch('/api/agent/audit', {
+        var auditData = await safeFetchJson('/api/agent/audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1202,7 +1217,6 @@ export function initWorkspace(
             specification: currentProject
           })
         });
-        var auditData = await response.json();
 
         if (securityTableBody && Array.isArray(auditData.findings) && auditData.findings.length) {
           securityTableBody.innerHTML = auditData.findings.map(function(item) {
@@ -2137,13 +2151,11 @@ export function initWorkspace(
         if (chosenName) reqPayload.projectName = chosenName;
         if (chosenNet) reqPayload.targetNetwork = chosenNet;
 
-        var response = await fetch('/api/specification', {
+        var result = await safeFetchJson('/api/specification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reqPayload)
         });
-        var result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Specification generation failed.');
         if (typingEl) typingEl.remove();
 
         specVersion++;
@@ -2179,12 +2191,11 @@ export function initWorkspace(
           if (onboardBody) onboardBody.scrollTop = onboardBody.scrollHeight;
 
           try {
-            var srcResponse = await fetch('/api/generate-source', {
+            var srcResult = await safeFetchJson('/api/generate-source', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ specification: result.specification })
             });
-            var srcResult = await srcResponse.json();
             if (codeTypingEl) codeTypingEl.remove();
 
             if (srcResult && srcResult.bundle) {

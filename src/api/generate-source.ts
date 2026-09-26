@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { generateSourceCode } from '../src/server/sourceGenerator';
+import { generateSourceCode } from '../server/sourceGenerator';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;

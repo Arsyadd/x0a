@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build",
+    "build": "vite build && npm run build:api",
+    "build:api": "esbuild src/api/specification.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/specification.js && esbuild src/api/generate-source.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/generate-source.js && esbuild src/api/chat.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/agent/chat.js && esbuild src/api/audit.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/agent/audit.js",
     "start": "tsx server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
