@@ -1,8 +1,3 @@
-import {
-  generateSpecification,
-  SpecificationGenerationError,
-} from '../src/server/specification';
-
 interface VercelRequest {
   method?: string;
   body?: unknown;
@@ -36,11 +31,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const { generateSpecification } = await import('../src/server/specification');
     const specification = await generateSpecification(prompt);
     res.status(200).json({ specification });
   } catch (error) {
-    if (error instanceof SpecificationGenerationError) {
-      res.status(error.statusCode).json({ error: error.message });
+    if (
+      error &&
+      typeof error === 'object' &&
+      'statusCode' in error &&
+      'message' in error
+    ) {
+      res.status(Number(error.statusCode)).json({ error: String(error.message) });
       return;
     }
     console.error('Specification generation failed.');
