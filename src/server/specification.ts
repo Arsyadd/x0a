@@ -1,4 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import { getGeminiApiKey } from './geminiConfig';
 
 const stringFields = [
   'projectName',
@@ -106,7 +107,7 @@ export async function generateSpecification(
   prompt: string,
   options?: SpecificationOptions,
 ): Promise<Specification> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     console.info('API key is not set on the server. Generating structured specification from requirements.');
     return generateFallbackSpecification(prompt, options);

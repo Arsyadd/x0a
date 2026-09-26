@@ -1,4 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import { getGeminiApiKey } from './geminiConfig';
 
 export interface SecurityFinding {
   id: string;
@@ -60,7 +61,7 @@ export async function auditCode(
   files: Array<{ name: string; code: string }>,
   specContext?: any,
 ): Promise<SecurityAuditResult> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return generateFallbackAudit(files);
   }

@@ -1,5 +1,6 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import type { Specification } from './specification';
+import { getGeminiApiKey } from './geminiConfig';
 
 export interface GeneratedFile {
   name: string;
@@ -115,7 +116,7 @@ function getErrorStatus(error: unknown): number {
 export async function generateSourceCode(
   spec: Specification,
 ): Promise<GeneratedSourceBundle> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return generateFallbackSourceBundle(spec);
   }

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { generateSpecification, SpecificationGenerationError } from '../src/server/specification';
+import { generateSourceCode } from '../src/server/sourceGenerator';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;
@@ -20,7 +20,6 @@ function parseRequestBody(req: ExtendedRequest): any {
 }
 
 export default async function handler(req: ExtendedRequest, res: ServerResponse) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -40,39 +39,22 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
   }
 
   const body = parseRequestBody(req);
-  const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
-  const projectName = typeof body?.projectName === 'string' ? body.projectName.trim() : undefined;
-  const targetNetwork = typeof body?.targetNetwork === 'string' ? body.targetNetwork.trim() : undefined;
-
-  if (!prompt) {
+  const spec = body?.specification;
+  if (!spec || typeof spec !== 'object' || !spec.projectName) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'A project prompt is required.' }));
-    return;
-  }
-
-  if (prompt.length > 24000) {
-    res.statusCode = 413;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'The project prompt is too long.' }));
+    res.end(JSON.stringify({ error: 'A valid specification object is required.' }));
     return;
   }
 
   try {
-    const specification = await generateSpecification(prompt, { projectName, targetNetwork });
+    const bundle = await generateSourceCode(spec);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ specification }));
+    res.end(JSON.stringify({ bundle }));
   } catch (error) {
-    console.error('Specification generation failed in Vercel function:', error);
-    if (error instanceof SpecificationGenerationError) {
-      res.statusCode = error.statusCode;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: error.message }));
-      return;
-    }
-
-    const message = error instanceof Error ? error.message : 'Could not generate a specification. Please try again.';
+    console.error('Source code generation failed in Vercel function:', error);
+    const message = error instanceof Error ? error.message : 'Could not generate source code. Please try again.';
     res.statusCode = 502;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: message }));

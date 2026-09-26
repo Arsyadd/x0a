@@ -1,0 +1,19 @@
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/agent/:match*",
+      "destination": "/api/agent/:match*"
+    },
+    {
+      "source": "/api/:match*",
+      "destination": "/api/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

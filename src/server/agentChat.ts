@@ -1,4 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import { getGeminiApiKey } from './geminiConfig';
 
 export interface AgentChatResponse {
   reply: string;
@@ -67,7 +68,7 @@ export async function handleAgentChat(
   currentCode: string,
   projectContext?: any,
 ): Promise<AgentChatResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return generateFallbackChatResponse(message, currentFile, currentCode);
   }
