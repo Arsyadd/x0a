@@ -8,6 +8,7 @@ import './workspace.css';
 interface WorkspacePageProps {
   initialPrompt?: string;
   initialRequest?: ProjectIntake;
+  onNavigateHome?: () => void;
 }
 
 function getHumanChainName(name: string, ecosystem: string, chainId: string) {
@@ -27,6 +28,7 @@ function getHumanChainName(name: string, ecosystem: string, chainId: string) {
 export default function WorkspacePage({
   initialPrompt = '',
   initialRequest,
+  onNavigateHome,
 }: WorkspacePageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const { networkConfigurations, sdkHasLoaded } = useDynamicContext();
@@ -63,10 +65,11 @@ export default function WorkspacePage({
     initWorkspace(root, {
       initialPrompt: initialPrompt.trim(),
       initialRequest: resolvedRequest,
+      onNavigateHome,
     });
 
     return undefined;
-  }, [initialPrompt, resolvedRequest]);
+  }, [initialPrompt, resolvedRequest, onNavigateHome]);
 
   return (
     <div className="x0a-workspace-host">

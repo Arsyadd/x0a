@@ -16,7 +16,6 @@ export default function HomeApp({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProject, setActiveProject] = useState('Yield Vault');
-  const [avatarPopOpen, setAvatarPopOpen] = useState(false);
   const [notifPopOpen, setNotifPopOpen] = useState(false);
   const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
   const [composerMode, setComposerMode] = useState<'new' | 'analyze' | 'deployment' | 'import'>('new');
@@ -28,6 +27,17 @@ export default function HomeApp({
   const [referenceFormOpen, setReferenceFormOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [channelNotice, setChannelNotice] = useState('');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (notifPopOpen) setNotifPopOpen(false);
+        if (customizeOpen) setCustomizeOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [notifPopOpen, customizeOpen]);
 
   // Customize preferences state
   const [defaultEco, setDefaultEco] = useState('auto');
@@ -333,59 +343,15 @@ export default function HomeApp({
           </div>
 
           <div className="sidebar__foot">
-            <button
-              className="sidebar__user"
-              onClick={() => setAvatarPopOpen(!avatarPopOpen)}
-              aria-haspopup="menu"
-              aria-expanded={avatarPopOpen}
-            >
-              <i>AR</i>
-              <span><b>Alex Rivera</b><span>Owner · Personal</span></span>
-            </button>
-            <button className="sidebar__gear" aria-label="Settings" onClick={() => setCustomizeOpen(true)}>
+            <div className="sidebar__auth" id="sidebar-dynamic-widget">
+              <DynamicWidget />
+            </div>
+            <button className="sidebar__gear" aria-label="Settings" onClick={() => setCustomizeOpen(true)} title="Customize preferences">
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
                 <circle cx="10" cy="10" r="2.7" />
                 <path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.9 5.1l-1.4 1.4M6.5 13.5l-1.4 1.4M14.9 14.9l-1.4-1.4M6.5 6.5 5.1 5.1" />
               </svg>
             </button>
-
-            <div className={`pop pop--up ${avatarPopOpen ? 'is-open' : ''}`} role="menu" aria-label="Account">
-              <button className="acct__item" role="menuitem" onClick={() => { setAvatarPopOpen(false); onBackToLanding(); }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-                  <path d="M2.5 8h11M6.5 4l-4 4 4 4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Landing Page
-              </button>
-              <button className="acct__item" role="menuitem" onClick={() => setAvatarPopOpen(false)}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-                  <circle cx="8" cy="5.5" r="2.5" />
-                  <path d="M3 13.5c.7-2.7 2.7-4 5-4s4.3 1.3 5 4" />
-                </svg>
-                Profile
-              </button>
-              <button className="acct__item" role="menuitem" onClick={() => setAvatarPopOpen(false)}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-                  <circle cx="5.5" cy="6" r="2" />
-                  <circle cx="11" cy="6" r="2" />
-                  <path d="M2 13c.4-2 1.7-3 3.5-3s3.1 1 3.5 3M8.6 10c1.6 0 2.7 1 3 3" />
-                </svg>
-                Team
-              </button>
-              <button className="acct__item" role="menuitem" onClick={() => { setAvatarPopOpen(false); setCustomizeOpen(true); }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="8" cy="8" r="2.2" />
-                  <path d="M8 2.5v1.6M8 12v1.6M13.5 8h-1.6M4 8H2.5M12 4l-1.1 1.1M5.1 10.9 4 12M12 12l-1.1-1.1M5.1 5.1 4 4" />
-                </svg>
-                Settings &amp; Customize
-              </button>
-              <div className="acct__div"></div>
-              <button className="acct__item" role="menuitem" onClick={onBackToLanding}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
-                  <path d="M6 14H3.5v-12H6M11 11l3-3-3-3M14 8H6" />
-                </svg>
-                Exit to Landing
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -423,7 +389,7 @@ export default function HomeApp({
                 aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}
                 aria-haspopup="dialog"
                 aria-expanded={notifPopOpen}
-                onClick={() => setNotifPopOpen(!notifPopOpen)}
+                onClick={() => setNotifPopOpen(true)}
               >
                 <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5.4 15.2v-4.8a5.6 5.6 0 0 1 11.2 0v4.8l1.5 1.6H3.9Z" />
@@ -433,108 +399,6 @@ export default function HomeApp({
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               </button>
-
-              {/* Dynamic's built-in auth UI. Signed out it renders a "Connect
-                  Wallet" button; signed in it renders the account chip. Either
-                  way it opens the native Dynamic wallet/auth modal. */}
-              <DynamicWidget />
-
-              <div className={`pop pop--notif ${notifPopOpen ? 'is-open' : ''}`} role="dialog" aria-label="Notifications">
-                <div className="notif__head">
-                  <h2>Notifications</h2>
-                  <button
-                    type="button"
-                    className="notif__markAll"
-                    disabled={unreadCount === 0}
-                    onClick={handleMarkAllRead}
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-                <div className="notif__tabs">
-                  <div className="seg" role="group" aria-label="Filter notifications">
-                    <button
-                      type="button"
-                      aria-pressed={notifFilter === 'all'}
-                      onClick={() => setNotifFilter('all')}
-                    >
-                      All
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={notifFilter === 'unread'}
-                      onClick={() => setNotifFilter('unread')}
-                    >
-                      Unread<em>{unreadCount ? unreadCount : ''}</em>
-                    </button>
-                  </div>
-                </div>
-
-                <ul className="notif__list" hidden={displayedNotifs.length === 0}>
-                  {displayedNotifs.map(n => (
-                    <li key={n.id}>
-                      <button
-                        type="button"
-                        className={`nitem ${n.unread ? 'is-unread' : ''}`}
-                        data-tone={n.type === 'incident' ? 'bad' : n.type === 'deploy' ? 'ok' : 'warn'}
-                        onClick={() => handleNotificationClick(n)}
-                      >
-                        <span className="nitem__icon">
-                          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <circle cx="10" cy="10" r="7" />
-                            <path d="M10 6v5l3 2" />
-                          </svg>
-                        </span>
-                        <span className="nitem__body">
-                          <span className="nitem__title">{n.title}</span>
-                          <span className="nitem__text">{n.text}</span>
-                          <span className="nitem__proj">{n.project}</span>
-                        </span>
-                        <span className="nitem__side">
-                          <span className="nitem__time">{formatAgo(n.mins)}</span>
-                          {n.unread && <span className="nitem__dot" aria-hidden="true"></span>}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className={`notif__empty ${displayedNotifs.length === 0 ? 'is-visible' : ''}`}>
-                  <span className="notif__emptyIcon">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <circle cx="10" cy="10" r="6.9" />
-                      <path d="m6.9 10.2 2.2 2.2 4-4.4" />
-                    </svg>
-                  </span>
-                  <b>You’re all caught up</b>
-                  <p>Nothing unread right now. Earlier alerts are under All.</p>
-                  <button type="button" className="btn-ghost" onClick={() => setNotifFilter('all')}>
-                    Show all alerts
-                  </button>
-                </div>
-
-                <div className="notif__foot">
-                  <button
-                    type="button"
-                    className="notif__settings"
-                    onClick={() => {
-                      setNotifPopOpen(false);
-                      setCustomizeOpen(true);
-                    }}
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
-                      <path d="M3 6.2h6.4M12.6 6.2H17" />
-                      <circle cx="10.8" cy="6.2" r="1.7" />
-                      <path d="M3 10.4h2.4M8.6 10.4H17" />
-                      <circle cx="7" cy="10.4" r="1.7" />
-                      <path d="M3 14.6h9M14.8 14.6H17" />
-                      <circle cx="13.1" cy="14.6" r="1.7" />
-                    </svg>
-                    Notification settings
-                    <span>{Object.values(notifEvents).filter(Boolean).length} of 9 events</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </header>
 
@@ -1030,6 +894,134 @@ export default function HomeApp({
             <button className="btn-ghost" onClick={handleResetPreferences}>Reset to defaults</button>
             <span className={`modal__savedHint ${savedHintVisible ? 'is-visible' : ''}`}>Saved — applies to new projects</span>
             <button className="btn-primary" onClick={handleSavePreferences}>Save preferences</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ============ Notifications Modal (never use popup) ============ */}
+      <div
+        className={`modalScrim ${notifPopOpen ? 'is-open' : ''}`}
+        onClick={() => setNotifPopOpen(false)}
+        aria-hidden="true"
+      />
+      <div
+        className={`modal notifModal ${notifPopOpen ? 'is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notifModalTitle"
+      >
+        <div className="modal__panel glass" tabIndex={-1} style={{ maxWidth: '520px' }}>
+          <div className="modal__head">
+            <div>
+              <h2 id="notifModalTitle">Notifications</h2>
+              <p>Security gates, contract verifications, and protocol alerts.</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <button
+                type="button"
+                className="notif__markAll"
+                disabled={unreadCount === 0}
+                onClick={handleMarkAllRead}
+              >
+                Mark all as read
+              </button>
+              <button className="modal__close" onClick={() => setNotifPopOpen(false)} aria-label="Close notifications">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                  <path d="m5.5 5.5 9 9M14.5 5.5l-9 9" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div style={{ padding: '0.8rem 1.4rem 0.2rem', borderBottom: '1px solid var(--line)' }}>
+            <div className="seg" role="group" aria-label="Filter notifications">
+              <button
+                type="button"
+                aria-pressed={notifFilter === 'all'}
+                onClick={() => setNotifFilter('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                aria-pressed={notifFilter === 'unread'}
+                onClick={() => setNotifFilter('unread')}
+              >
+                Unread<em>{unreadCount ? ` (${unreadCount})` : ''}</em>
+              </button>
+            </div>
+          </div>
+
+          <div className="modal__body" style={{ padding: '0.6rem', maxHeight: '420px', gap: '0.2rem' }}>
+            <ul className="notif__list" hidden={displayedNotifs.length === 0} style={{ borderTop: 0, padding: 0 }}>
+              {displayedNotifs.map(n => (
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    className={`nitem ${n.unread ? 'is-unread' : ''}`}
+                    data-tone={n.type === 'incident' ? 'bad' : n.type === 'deploy' ? 'ok' : 'warn'}
+                    onClick={() => {
+                      handleNotificationClick(n);
+                      setNotifPopOpen(false);
+                    }}
+                  >
+                    <span className="nitem__icon">
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" />
+                        <path d="M10 6v5l3 2" />
+                      </svg>
+                    </span>
+                    <span className="nitem__body">
+                      <span className="nitem__title">{n.title}</span>
+                      <span className="nitem__text">{n.text}</span>
+                      <span className="nitem__proj">{n.project}</span>
+                    </span>
+                    <span className="nitem__side">
+                      <span className="nitem__time">{formatAgo(n.mins)}</span>
+                      {n.unread && <span className="nitem__dot" aria-hidden="true"></span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <div className={`notif__empty ${displayedNotifs.length === 0 ? 'is-visible' : ''}`}>
+              <span className="notif__emptyIcon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="10" cy="10" r="6.9" />
+                  <path d="m6.9 10.2 2.2 2.2 4-4.4" />
+                </svg>
+              </span>
+              <b>You’re all caught up</b>
+              <p>Nothing unread right now. Earlier alerts are under All.</p>
+              <button type="button" className="btn-ghost" onClick={() => setNotifFilter('all')}>
+                Show all alerts
+              </button>
+            </div>
+          </div>
+
+          <div className="modal__foot">
+            <button
+              type="button"
+              className="notif__settings"
+              onClick={() => {
+                setNotifPopOpen(false);
+                setCustomizeOpen(true);
+              }}
+            >
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
+                <path d="M3 6.2h6.4M12.6 6.2H17" />
+                <circle cx="10.8" cy="6.2" r="1.7" />
+                <path d="M3 10.4h2.4M8.6 10.4H17" />
+                <circle cx="7" cy="10.4" r="1.7" />
+                <path d="M3 14.6h9M14.8 14.6H17" />
+                <circle cx="13.1" cy="14.6" r="1.7" />
+              </svg>
+              Notification preferences
+            </button>
+            <button className="btn-ghost" type="button" onClick={() => setNotifPopOpen(false)}>
+              Close
+            </button>
           </div>
         </div>
       </div>

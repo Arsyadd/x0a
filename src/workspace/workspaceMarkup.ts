@@ -96,20 +96,13 @@ export const workspaceMarkup = `
 </ul>
 </div>
 <div class="sidebar__foot">
-<button aria-controls="avatarPop" aria-expanded="false" aria-haspopup="menu" class="sidebar__user" id="avatarBtn">
+<button aria-controls="accountModal" aria-expanded="false" aria-haspopup="dialog" class="sidebar__user" id="avatarBtn">
 <i>AR</i>
 <span><b>Alex Rivera</b><span>Owner &middot; Personal</span></span>
 </button>
-<button aria-label="Settings" class="sidebar__gear">
+<button aria-label="Settings" class="sidebar__gear" id="gearBtn">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 20 20"><circle cx="10" cy="10" r="2.7"></circle><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.9 5.1l-1.4 1.4M6.5 13.5l-1.4 1.4M14.9 14.9l-1.4-1.4M6.5 6.5 5.1 5.1"></path></svg>
 </button>
-<div aria-label="Account" class="pop pop--up" id="avatarPop" role="menu">
-<a class="acct__item" href="#" role="menuitem"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" viewbox="0 0 16 16"><circle cx="8" cy="5.5" r="2.5"></circle><path d="M3 13.5c.7-2.7 2.7-4 5-4s4.3 1.3 5 4"></path></svg>Profile</a>
-<a class="acct__item" href="#" role="menuitem"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" viewbox="0 0 16 16"><circle cx="5.5" cy="6" r="2"></circle><circle cx="11" cy="6" r="2"></circle><path d="M2 13c.4-2 1.7-3 3.5-3s3.1 1 3.5 3M8.6 10c1.6 0 2.7 1 3 3"></path></svg>Team</a>
-<a class="acct__item" href="#" role="menuitem"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 16 16"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 2.5v1.6M8 12v1.6M13.5 8h-1.6M4 8H2.5M12 4l-1.1 1.1M5.1 10.9 4 12M12 12l-1.1-1.1M5.1 5.1 4 4"></path></svg>Settings</a>
-<div class="acct__div"></div>
-<a class="acct__item" href="#" role="menuitem"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 16 16"><path d="M6 14H3.5v-12H6M11 11l3-3-3-3M14 8H6"></path></svg>Sign out</a>
-</div>
 </div>
 </aside>
 <!-- ============ Main column ============ -->
@@ -126,30 +119,10 @@ export const workspaceMarkup = `
 </div>
 </div>
 <div class="topbar__right">
-<button aria-controls="notifPop" aria-expanded="false" aria-haspopup="dialog" aria-label="Notifications" class="bell" data-tip="Notifications" id="notifBtn" type="button">
+<button aria-controls="notifModal" aria-expanded="false" aria-haspopup="dialog" aria-label="Notifications" class="bell" data-tip="Notifications" id="notifBtn" type="button">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 22 22"><path d="M5.4 15.2v-4.8a5.6 5.6 0 0 1 11.2 0v4.8l1.5 1.6H3.9Z"></path><path d="M9 19.2a2.2 2.2 0 0 0 4 0"></path></svg>
 <span aria-hidden="true" class="bell__badge" id="notifBadge"></span>
 </button>
-<div aria-label="Notifications" class="pop pop--notif" id="notifPop" role="dialog">
-<div class="notif__head"><h2>Notifications</h2></div>
-<ul class="notif__list">
-<li class="nitem" data-tone="ok">
-<span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="m5 10 3.2 3.2L15 6.5"></path></svg></span>
-<span class="nitem__body"><span class="nitem__title">Security gate passed</span><span class="nitem__text">Yield Vault cleared spec, tests, security, simulation and policy.</span></span>
-<span class="nitem__time">12m</span>
-</li>
-<li class="nitem" data-tone="warn">
-<span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M10 3.6 17.5 16H2.5Z"></path><path d="M10 8.2v3.4"></path><circle cx="10" cy="14.1" fill="currentColor" r=".2"></circle></svg></span>
-<span class="nitem__body"><span class="nitem__title">Wallet approval requested</span><span class="nitem__text">Deployment to Base Sepolia is ready and waiting on your Safe.</span></span>
-<span class="nitem__time">12m</span>
-</li>
-<li class="nitem">
-<span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.5v4l2.6 1.6"></path></svg></span>
-<span class="nitem__body"><span class="nitem__title">Fork simulation completed</span><span class="nitem__text">4 scenarios passed on a pinned Base mainnet fork.</span></span>
-<span class="nitem__time">1h</span>
-</li>
-</ul>
-</div>
 </div>
 </header>
 <!-- ============ Workspace toolbar ============ -->
@@ -1121,5 +1094,82 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 </div>
 </div>
 
+<!-- ============ Workspace Modals (never use popups) ============ -->
+<!-- Notifications Modal -->
+<div class="modalScrim" id="notifScrim" aria-hidden="true"></div>
+<div aria-label="Notifications" aria-modal="true" class="modal notifModal" id="notifModal" role="dialog">
+  <div class="modal__panel glass" style="max-width:500px">
+    <div class="modal__head">
+      <div>
+        <h2>Notifications</h2>
+        <p>Real-time security audits, contract verifications, and deployment gates.</p>
+      </div>
+      <button class="modal__close" id="notifClose" aria-label="Close notifications">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+      </button>
+    </div>
+    <div class="modal__body" style="padding:0;max-height:420px">
+      <ul class="notif__list" id="notifListModal" style="border-top:0;padding:0.4rem">
+        <li class="nitem" data-tone="ok">
+          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="m5 10 3.2 3.2L15 6.5"></path></svg></span>
+          <span class="nitem__body"><span class="nitem__title">Security gate passed</span><span class="nitem__text">Yield Vault cleared spec, tests, security, simulation and policy.</span></span>
+          <span class="nitem__time">12m</span>
+        </li>
+        <li class="nitem" data-tone="warn">
+          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M10 3.6 17.5 16H2.5Z"></path><path d="M10 8.2v3.4"></path><circle cx="10" cy="14.1" fill="currentColor" r=".2"></circle></svg></span>
+          <span class="nitem__body"><span class="nitem__title">Wallet approval requested</span><span class="nitem__text">Deployment to Base Sepolia is ready and waiting on your Safe.</span></span>
+          <span class="nitem__time">12m</span>
+        </li>
+        <li class="nitem">
+          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.5v4l2.6 1.6"></path></svg></span>
+          <span class="nitem__body"><span class="nitem__title">Fork simulation completed</span><span class="nitem__text">4 scenarios passed on a pinned Base mainnet fork.</span></span>
+          <span class="nitem__time">1h</span>
+        </li>
+      </ul>
+    </div>
+    <div class="modal__foot">
+      <span style="font-size:0.78rem;color:var(--muted)">Protocol telemetry stream active</span>
+      <button class="btn-ghost" id="notifFootClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
 
+<!-- Account & Workspace Modal -->
+<div class="modalScrim" id="accountScrim" aria-hidden="true"></div>
+<div aria-label="Account & Workspace" aria-modal="true" class="modal" id="accountModal" role="dialog">
+  <div class="modal__panel glass" style="max-width:440px">
+    <div class="modal__head">
+      <div>
+        <h2>Account &amp; Workspace</h2>
+        <p>Workspace profile, session settings, and navigation.</p>
+      </div>
+      <button class="modal__close" id="accountClose" aria-label="Close account modal">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+      </button>
+    </div>
+    <div class="modal__body" style="padding:1.2rem 1.4rem">
+      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:0.75rem">
+        <i style="flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--blue-soft);color:#0B0B11;font-weight:600;font-size:0.8rem;font-style:normal">AR</i>
+        <div style="flex:1;min-width:0">
+          <b style="display:block;font-size:0.88rem;color:var(--fg)">Alex Rivera</b>
+          <span style="display:block;font-size:0.74rem;color:var(--muted)">Owner &middot; Personal Workspace</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.35rem">
+        <button class="acct__item" id="acctBackHome" type="button" style="width:100%;text-align:left;border:0;background:transparent;cursor:pointer">
+          <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" viewbox="0 0 16 16"><path d="M2.5 8h11M6.5 4l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Return to Home Hub
+        </button>
+        <button class="acct__item" id="acctBackLanding" type="button" style="width:100%;text-align:left;border:0;background:transparent;cursor:pointer">
+          <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 16 16"><path d="M6 14H3.5v-12H6M11 11l3-3-3-3M14 8H6"/></svg>
+          Exit to Landing Page
+        </button>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <span></span>
+      <button class="btn-ghost" id="accountFootClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
 `;

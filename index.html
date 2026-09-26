@@ -3,6 +3,213 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (function() {
+        try {
+          var cleanStorage = function(storage) {
+            if (!storage) return;
+            for (var i = 0; i < storage.length; i++) {
+              var k = storage.key(i);
+              if (k && (k.indexOf('settings') !== -1 || k.indexOf('dynamic') !== -1 || k.indexOf('state') !== -1)) {
+                var val = storage.getItem(k);
+                if (val && (val.indexOf('chainConfigurations') !== -1 || val.indexOf('embeddedWallets') !== -1)) {
+                  try {
+                    var parsed = JSON.parse(val);
+                    var updated = false;
+                    var sanitize = function(obj) {
+                      if (!obj || typeof obj !== 'object') return;
+                      if (obj.embeddedWallets) {
+                        obj.embeddedWallets.automaticEmbeddedWalletCreation = false;
+                        obj.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
+                        obj.embeddedWallets.defaultWalletVersion = undefined;
+                        updated = true;
+                      }
+                      if (Array.isArray(obj.chainConfigurations)) {
+                        obj.chainConfigurations = obj.chainConfigurations.filter(function(c) {
+                          var n = String(c.name || '').toUpperCase();
+                          return n === 'EVM' || n === 'ETH';
+                        }).map(function(c) {
+                          return Object.assign({}, c, { enabled: true, primary: true });
+                        });
+                        if (obj.chainConfigurations.length === 0) {
+                          obj.chainConfigurations = [{ name: 'EVM', enabled: true, primary: true }];
+                        }
+                        updated = true;
+                      }
+                      for (var prop in obj) {
+                        if (obj.hasOwnProperty(prop) && typeof obj[prop] === 'object') {
+                          sanitize(obj[prop]);
+                        }
+                      }
+                    };
+                    sanitize(parsed);
+                    if (updated) {
+                      storage.setItem(k, JSON.stringify(parsed));
+                    }
+                  } catch (_) {}
+                }
+              }
+            }
+          };
+
+          if (typeof localStorage !== 'undefined') cleanStorage(localStorage);
+          if (typeof sessionStorage !== 'undefined') cleanStorage(sessionStorage);
+        } catch (_) {}
+
+        try {
+          if (typeof indexedDB !== 'undefined' && typeof indexedDB.deleteDatabase === 'function') {
+            indexedDB.deleteDatabase('dynamic');
+          }
+        } catch (_) {}
+
+        try {
+          if (typeof window !== 'undefined') {
+            window.addEventListener('unhandledrejection', function(event) {
+              if (event && event.reason) {
+                var msg = event.reason.message || String(event.reason);
+                if (msg.indexOf('Failed to load iframe') !== -1 || msg.indexOf('Iframe load timeout') !== -1) {
+                  event.preventDefault();
+                }
+              }
+            });
+
+            var origFetch = window.fetch;
+            if (origFetch) {
+              var boundFetch = origFetch.bind(window);
+              var interceptingFetch = function(input, init) {
+                var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+                var promise = boundFetch(input, init);
+
+                var isTarget = url && (
+                  url.indexOf('/settings') !== -1 ||
+                  url.indexOf('dynamic.xyz') !== -1 ||
+                  url.indexOf('projectSettings') !== -1 ||
+                  url.indexOf('project-settings') !== -1
+                );
+
+                if (isTarget) {
+                  return promise.then(function(response) {
+                    if (!response.ok) return response;
+                    try {
+                      return response.clone().json().then(function(data) {
+                        if (!data || typeof data !== 'object') return response;
+
+                        var modified = false;
+
+                        var sanitizeChainConfigs = function(arr) {
+                          if (!Array.isArray(arr)) return arr;
+                          var evmOnly = arr.filter(function(chain) {
+                            var name = String(chain.name || '').toUpperCase();
+                            return name === 'EVM' || name === 'ETH';
+                          }).map(function(chain) {
+                            return Object.assign({}, chain, { enabled: true, primary: true });
+                          });
+                          if (evmOnly.length === 0) {
+                            evmOnly = [{ name: 'EVM', enabled: true, primary: true }];
+                          }
+                          return evmOnly;
+                        };
+
+                        if (data.sdk && data.sdk.embeddedWallets) {
+                          if (data.sdk.embeddedWallets.chainConfigurations) {
+                            data.sdk.embeddedWallets.chainConfigurations = sanitizeChainConfigs(data.sdk.embeddedWallets.chainConfigurations);
+                          }
+                          data.sdk.embeddedWallets.automaticEmbeddedWalletCreation = false;
+                          data.sdk.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
+                          data.sdk.embeddedWallets.defaultWalletVersion = undefined;
+                          modified = true;
+                        }
+
+                        if (data.embeddedWallets) {
+                          if (data.embeddedWallets.chainConfigurations) {
+                            data.embeddedWallets.chainConfigurations = sanitizeChainConfigs(data.embeddedWallets.chainConfigurations);
+                          }
+                          data.embeddedWallets.automaticEmbeddedWalletCreation = false;
+                          data.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
+                          data.embeddedWallets.defaultWalletVersion = undefined;
+                          modified = true;
+                        }
+
+                        if (Array.isArray(data.chains)) {
+                          data.chains = data.chains.map(function(c) {
+                            var name = String(c.name || '').toUpperCase();
+                            var isEvm = name === 'EVM' || name === 'ETH';
+                            return Object.assign({}, c, { enabled: isEvm });
+                          });
+                          modified = true;
+                        }
+
+                        if (modified) {
+                          var newHeaders = new Headers(response.headers);
+                          newHeaders.delete('content-length');
+                          newHeaders.set('content-type', 'application/json');
+                          return new Response(JSON.stringify(data), {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: newHeaders,
+                          });
+                        }
+
+                        return response;
+                      }).catch(function() {
+                        return response;
+                      });
+                    } catch (_) {
+                      return response;
+                    }
+                  });
+                }
+                return promise;
+              };
+
+              var activeFetch = interceptingFetch;
+              try {
+                Object.defineProperty(window, 'fetch', {
+                  configurable: true,
+                  enumerable: true,
+                  get: function() {
+                    return activeFetch;
+                  },
+                  set: function(val) {
+                    if (this !== window && (typeof globalThis === 'undefined' || this !== globalThis)) {
+                      try {
+                        Object.defineProperty(this, 'fetch', {
+                          configurable: true,
+                          enumerable: true,
+                          writable: true,
+                          value: val,
+                        });
+                        return;
+                      } catch (_) {}
+                    }
+                    activeFetch = val;
+                  },
+                });
+              } catch (_) {
+                try {
+                  window.fetch = interceptingFetch;
+                } catch (_) {}
+              }
+
+              try {
+                var proto = Object.getPrototypeOf(window);
+                if (proto && proto !== Object.prototype) {
+                  var pDesc = Object.getOwnPropertyDescriptor(proto, 'fetch');
+                  if (pDesc && pDesc.get && !pDesc.set) {
+                    Object.defineProperty(proto, 'fetch', {
+                      configurable: true,
+                      enumerable: true,
+                      writable: true,
+                      value: interceptingFetch,
+                    });
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      })();
+    </script>
     <title>x0a | AI Smart Contract Engineer</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content="x0a is an autonomous smart contract engineering platform for every major chain. From a plain-language idea to a tested, reviewed, wallet-approved and monitored deployment." />

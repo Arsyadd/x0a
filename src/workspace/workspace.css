@@ -118,11 +118,28 @@
 .x0a-workspace-root .sidebar__gear{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:var(--muted)}
 .x0a-workspace-root .sidebar__gear:hover{background:var(--surface2);color:var(--fg)}
 
-.x0a-workspace-root .pop{position:absolute;top:calc(100% + 10px);right:0;width:280px;max-width:78vw;background:var(--raised);border:1px solid var(--line);border-radius:16px;padding:.5rem;box-shadow:0 24px 60px rgba(0,0,0,.55);opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .2s,transform .2s,visibility .2s}
-.x0a-workspace-root .pop.is-open{opacity:1;visibility:visible;transform:translateY(0)}
-.x0a-workspace-root .acct__item{display:flex;align-items:center;gap:.55rem;padding:.5rem .45rem;border-radius:10px;font-size:.78rem}
+/* ---- Modal System for Workspace (never use popups) ---- */
+.x0a-workspace-root .modalScrim{position:fixed;inset:0;z-index:90;background:rgba(2,2,4,.68);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s var(--ease)}
+.x0a-workspace-root .modalScrim.is-open{opacity:1;pointer-events:auto}
+
+.x0a-workspace-root .modal{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:var(--edge);pointer-events:none;opacity:0;visibility:hidden;transition:opacity .25s var(--ease),visibility 0s linear .25s}
+.x0a-workspace-root .modal.is-open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .25s var(--ease),visibility 0s}
+.x0a-workspace-root .modal__panel{width:min(94vw,520px);max-height:min(86vh,680px);display:flex;flex-direction:column;padding:0;background:var(--raised);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(12px) scale(.98);transition:transform .3s var(--ease);overflow:hidden}
+.x0a-workspace-root .modal.is-open .modal__panel{transform:translateY(0) scale(1)}
+
+.x0a-workspace-root .modal__head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.2rem 1.4rem 1rem;border-bottom:1px solid var(--line);flex:none}
+.x0a-workspace-root .modal__head h2{font-size:1.05rem;font-weight:560;letter-spacing:-.01em;margin-bottom:.25rem}
+.x0a-workspace-root .modal__head p{font-size:.8rem;color:var(--muted);line-height:1.5;margin:0}
+.x0a-workspace-root .modal__close{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:var(--muted);background:transparent;border:0;cursor:pointer}
+.x0a-workspace-root .modal__close:hover{background:var(--surface2);color:var(--fg)}
+.x0a-workspace-root .modal__close svg{width:16px;height:16px}
+
+.x0a-workspace-root .modal__body{flex:1;min-height:0;overflow-y:auto;padding:1rem 1.4rem;display:flex;flex-direction:column;gap:1rem;scrollbar-width:thin}
+.x0a-workspace-root .modal__foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.4rem;border-top:1px solid var(--line);flex:none;background:var(--surface)}
+
+.x0a-workspace-root .acct__item{display:flex;align-items:center;gap:.55rem;padding:.65rem .75rem;border-radius:10px;font-size:.82rem;color:var(--fg);transition:background .2s}
 .x0a-workspace-root .acct__item:hover{background:var(--surface2)}
-.x0a-workspace-root .acct__item svg{width:15px;height:15px;color:var(--muted)}
+.x0a-workspace-root .acct__item svg{width:16px;height:16px;color:var(--muted)}
 .x0a-workspace-root .acct__div{height:1px;background:var(--line);margin:.3rem .25rem}
 .x0a-workspace-root .pop.pop--up{top:auto;bottom:calc(100% + 10px);left:0;right:0;width:auto;max-width:none;transform:translateY(6px)}
 .x0a-workspace-root .pop.pop--up.is-open{transform:translateY(0)}

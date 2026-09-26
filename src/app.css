@@ -114,7 +114,11 @@ body.is-locked{overflow:hidden}
 .app-scope .plist__empty.is-visible{display:block}
 
 /* ---- User footer ---- */
-.app-scope .sidebar__foot{position:relative;display:flex;align-items:center;gap:.4rem;padding-top:.75rem;margin-top:.5rem;border-top:1px solid var(--line);flex:none}
+.app-scope .sidebar__foot{position:relative;display:flex;align-items:center;gap:.4rem;padding-top:.75rem;margin-top:.5rem;border-top:1px solid var(--line);flex:none;min-width:0;width:100%}
+.app-scope .sidebar__auth{flex:1;min-width:0;display:flex;align-items:center;overflow:hidden}
+.app-scope .sidebar__auth > div,
+.app-scope .sidebar__auth .dynamic-widget-inline-controls{width:100%;max-width:100%}
+.app-scope .sidebar__auth button{max-width:100%}
 .app-scope .sidebar__user{display:flex;align-items:center;gap:.55rem;flex:1;min-width:0;padding:.3rem;border-radius:10px;text-align:left}
 .app-scope .sidebar__user:hover{background:var(--surface2)}
 .app-scope .sidebar__user i{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--blue-soft);color:#0B0B11;font-weight:600;font-size:.7rem;font-style:normal}

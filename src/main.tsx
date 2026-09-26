@@ -17,6 +17,16 @@ createRoot(document.getElementById('root')!).render(
       settings={{
         environmentId: dynamicEnvironmentId,
         walletConnectors: [EthereumWalletConnectors],
+        overrides: {
+          solNetworks: [],
+          bitcoinNetworks: [],
+          aleoNetworks: [],
+          stellarNetworks: [],
+          tonNetworks: [],
+          tronNetworks: [],
+          aptosNetworks: [],
+          cosmosNetworks: [],
+        },
       }}
     >
       <App />

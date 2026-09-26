@@ -19,9 +19,11 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'cross-fetch': path.resolve(__dirname, 'src/polyfills/crossFetch.ts'),
       },
     },
     server: {
+      allowedHosts: true as const,
       // HMR is disabled via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

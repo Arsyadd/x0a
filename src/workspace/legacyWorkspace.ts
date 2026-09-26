@@ -6,6 +6,7 @@ import { getAuthToken } from '@dynamic-labs/sdk-react-core';
 interface WorkspaceInitOptions {
   initialPrompt?: string;
   initialRequest?: import('../types/projectIntake').ProjectIntake;
+  onNavigateHome?: () => void;
 }
 
 export function initWorkspace(
@@ -110,42 +111,79 @@ export function initWorkspace(
   if (scrim) scrim.addEventListener('click', function() { setOpen(false); });
   if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', function() { setOpen(false); });
 
-  /* ---------------- Popovers (account + notifications) ---------------- */
-  var pops = [
-    { btn: $('#avatarBtn'), pop: $('#avatarPop') },
-    { btn: $('#notifBtn'), pop: $('#notifPop') }
-  ];
+  /* ---------------- Modals (account + notifications) ---------------- */
+  var notifModal = $('#notifModal'), notifScrim = $('#notifScrim');
+  var notifBtn = $('#notifBtn'), notifClose = $('#notifClose'), notifFootClose = $('#notifFootClose');
 
-  function closeAllPops() {
-    pops.forEach(function(p) {
-      if (p.pop) p.pop.classList.remove('is-open');
-      if (p.btn) p.btn.setAttribute('aria-expanded', 'false');
+  function openNotifModal() {
+    if (notifScrim) notifScrim.classList.add('is-open');
+    if (notifModal) notifModal.classList.add('is-open');
+    if (notifBtn) notifBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeNotifModal() {
+    if (notifScrim) notifScrim.classList.remove('is-open');
+    if (notifModal) notifModal.classList.remove('is-open');
+    if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  if (notifBtn) notifBtn.addEventListener('click', openNotifModal);
+  if (notifClose) notifClose.addEventListener('click', closeNotifModal);
+  if (notifFootClose) notifFootClose.addEventListener('click', closeNotifModal);
+  if (notifScrim) notifScrim.addEventListener('click', closeNotifModal);
+
+  var accountModal = $('#accountModal'), accountScrim = $('#accountScrim');
+  var avatarBtn = $('#avatarBtn'), gearBtn = $('#gearBtn');
+  var accountClose = $('#accountClose'), accountFootClose = $('#accountFootClose');
+
+  function openAccountModal() {
+    if (accountScrim) accountScrim.classList.add('is-open');
+    if (accountModal) accountModal.classList.add('is-open');
+  }
+
+  function closeAccountModal() {
+    if (accountScrim) accountScrim.classList.remove('is-open');
+    if (accountModal) accountModal.classList.remove('is-open');
+  }
+
+  if (avatarBtn) avatarBtn.addEventListener('click', openAccountModal);
+  if (gearBtn) gearBtn.addEventListener('click', openAccountModal);
+  if (accountClose) accountClose.addEventListener('click', closeAccountModal);
+  if (accountFootClose) accountFootClose.addEventListener('click', closeAccountModal);
+  if (accountScrim) accountScrim.addEventListener('click', closeAccountModal);
+
+  var acctBackHome = $('#acctBackHome');
+  if (acctBackHome) {
+    acctBackHome.addEventListener('click', function() {
+      closeAccountModal();
+      if (typeof options.onNavigateHome === 'function') {
+        options.onNavigateHome();
+      } else {
+        window.location.hash = 'app';
+      }
     });
   }
 
-  pops.forEach(function(p) {
-    if (p.btn && p.pop) {
-      p.btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var willOpen = !p.pop.classList.contains('is-open');
-        closeAllPops();
-        p.pop.classList.toggle('is-open', willOpen);
-        p.btn.setAttribute('aria-expanded', String(willOpen));
-      });
-    }
-  });
+  var acctBackLanding = $('#acctBackLanding');
+  if (acctBackLanding) {
+    acctBackLanding.addEventListener('click', function() {
+      closeAccountModal();
+      window.location.hash = 'landing';
+    });
+  }
 
-  root.addEventListener('click', function(e) {
-    if (!pops.some(function(p) { return p.pop && (p.pop.contains(e.target) || (p.btn && p.btn.contains(e.target))); })) {
-      closeAllPops();
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeNotifModal();
+      closeAccountModal();
     }
   });
 
   /* ---------------- Notification badge & live interactive notifications ---------------- */
-  var notifBadge = $('#notifBadge'), notifBtn = $('#notifBtn');
+  var notifBadge = $('#notifBadge');
   function updateNotifBadge() {
     if (!notifBadge || !notifBtn) return;
-    var notifCount = $$('#notifPop .nitem:not(.is-read)').length;
+    var notifCount = $$('#notifModal .nitem:not(.is-read)').length;
     notifBadge.textContent = notifCount > 9 ? '9+' : String(notifCount);
     notifBadge.classList.toggle('is-visible', notifCount > 0);
     notifBtn.setAttribute('aria-label', notifCount ? 'Notifications, ' + notifCount + ' unread' : 'Notifications');
@@ -153,13 +191,13 @@ export function initWorkspace(
   updateNotifBadge();
 
   // Notification items jump to the corresponding section when clicked
-  $$('#notifPop .nitem').forEach(function(item) {
+  $$('#notifModal .nitem').forEach(function(item) {
     item.style.cursor = 'pointer';
     item.addEventListener('click', function() {
       item.classList.add('is-read');
       item.style.opacity = '0.65';
       updateNotifBadge();
-      closeAllPops();
+      closeNotifModal();
 
       var text = item.textContent.toLowerCase();
       if (text.indexOf('wallet approval') > -1) {
@@ -2379,19 +2417,37 @@ export function initWorkspace(
   $$('.sidebar__brand').forEach(function(b) {
     b.addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.hash = 'app';
+      if (typeof options.onNavigateHome === 'function') {
+        options.onNavigateHome();
+      } else {
+        window.location.hash = 'app';
+      }
     });
   });
 
-  // Wire "New project" button to restart intake Q&A
+  // Wire "New project" button to return to Home app instead of specifications
   $$('.sbtn--new').forEach(function(b) {
-    b.addEventListener('click', function() {
-      startOnboarding('Build a smart contract protocol with automated security gates.');
+    b.addEventListener('click', function(e) {
+      e.preventDefault();
+      setOpen(false);
+      var backdrop = $('#sidebarBackdrop');
+      if (backdrop) backdrop.remove();
+
+      if (typeof options.onNavigateHome === 'function') {
+        options.onNavigateHome();
+      } else {
+        window.location.hash = 'app';
+      }
     });
   });
 
-  // Kick off intake flow
-  startOnboarding(initialPrompt);
+  // Kick off intake flow only if an initial prompt is provided
+  if (initialPrompt && initialPrompt.trim()) {
+    startOnboarding(initialPrompt);
+  } else {
+    var onboardEl = $('#onboardModal');
+    if (onboardEl) onboardEl.classList.add('is-hidden');
+  }
 
   /* Seed the in-workspace chat with a primer */
   if (agentLog) {

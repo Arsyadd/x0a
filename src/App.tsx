@@ -300,6 +300,7 @@ export default function App() {
           key={workspacePrompt}
           initialPrompt={workspacePrompt}
           initialRequest={workspaceRequest}
+          onNavigateHome={navigateToApp}
         />
       )}
     </div>
