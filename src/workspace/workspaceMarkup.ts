@@ -6,8 +6,8 @@ export const workspaceMarkup = `
 <div aria-label="Project intake" class="onboard" id="onboard" role="dialog">
 <div class="onboard__head">
 <div class="onboard__brand"><span>x0a</span><em>&middot; New project</em></div>
-<span class="onboard__proj">Yield Vault</span>
-<span class="onboard__eco">EVM &middot; Base</span>
+<span class="onboard__proj" id="onboardProject">New project</span>
+<span class="onboard__eco" id="onboardEcosystem">Specification</span>
 <div aria-hidden="true" class="onboard__steps" id="onboardSteps"></div>
 </div>
 <div class="onboard__body">
@@ -17,8 +17,8 @@ export const workspaceMarkup = `
 <div class="onboard__foot-inner" id="onboardFootInner">
 <div class="qrChips" id="onboardChips"></div>
 <form class="onboard__composer" id="onboardForm">
-<input autocomplete="off" disabled="" id="onboardInput" placeholder="Type your answer&hellip;" type="text"/>
-<button aria-label="Send" class="onboard__send" disabled="" id="onboardSend" type="submit">
+<input autocomplete="off" id="onboardInput" placeholder="Describe a change to the specification&hellip;" type="text"/>
+<button aria-label="Send" class="onboard__send" id="onboardSend" type="submit">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 20 20"><path d="M3 10h14M11 4l6 6-6 6"></path></svg>
 </button>
 </form>
@@ -253,50 +253,36 @@ export const workspaceMarkup = `
 <!-- Specification -->
 <section class="view" id="view-specification">
 <div class="view__intro">
-<h1 class="view__title">Specification <span class="lockBadge"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 20 20"><rect height="7.5" rx="1.6" width="11" x="4.5" y="9"></rect><path d="M6.8 9V6.2a3.2 3.2 0 0 1 6.4 0V9"></path></svg>v3 &middot; locked</span></h1>
-<p class="view__lede">The structured intent behind Yield Vault, reviewed and locked by the project owner. Locking a version freezes it as the source of truth for the threat model, architecture and generated code.</p>
+<h1 class="view__title">Specification <span class="lockBadge" id="specVersion">Generated from prompt</span></h1>
+<p class="view__lede" id="specDescription">Generated from your project request. Refine the prompt to create a new version.</p>
 </div>
-<div class="fieldGrid">
-<div class="field"><dt>Project</dt><dd>Yield Vault</dd></div>
-<div class="field"><dt>Ecosystem &middot; VM</dt><dd>EVM<span>Cancun</span></dd></div>
-<div class="field"><dt>Language &middot; Framework</dt><dd>Solidity ^0.8.26<span>Foundry</span></dd></div>
-<div class="field"><dt>Contract kind</dt><dd>Yield vault<span>ERC-4626-style</span></dd></div>
-<div class="field"><dt>Target networks</dt><dd>Base<span>Testnet now &middot; Mainnet later</span></dd></div>
-<div class="field"><dt>Complexity</dt><dd>Medium<span>3 contracts</span></dd></div>
+<div class="fieldGrid" id="specFields">
+<div class="field"><dt>Project</dt><dd id="specProject">Waiting for prompt</dd></div>
+<div class="field"><dt>Ecosystem</dt><dd id="specEcosystem">&mdash;</dd></div>
+<div class="field"><dt>Language &middot; Framework</dt><dd id="specLanguage">&mdash;<span id="specFramework"></span></dd></div>
+<div class="field"><dt>Project type</dt><dd id="specKind">&mdash;</dd></div>
+<div class="field"><dt>Target platform</dt><dd id="specTargets">&mdash;</dd></div>
+<div class="field"><dt>Complexity</dt><dd id="specComplexity">&mdash;</dd></div>
 </div>
 <div class="docBlock">
 <h3>Summary</h3>
-<p style="font-size:.85rem;color:var(--muted);line-height:1.65;max-width:68ch">An overcollateralized-free, single-asset yield vault on Base. Users deposit an underlying ERC-20 asset and receive <b style="color:var(--fg);font-weight:560">ShareToken</b>, a non-transferable accounting share representing pro-rata ownership of vault assets. Yield accrues off-chain through a strategist-operated position and is credited back into the vault, then streamed to depositors through a pull-based <b style="color:var(--fg);font-weight:560">RewardsDistributor</b>. The vault carries a role-gated guardian pause switch and an admin role intended to sit behind a Safe and a timelock.</p>
+<p id="specSummary" style="font-size:.85rem;color:var(--muted);line-height:1.65;max-width:68ch">Your prompt will be turned into a structured specification.</p>
 </div>
 <div class="docBlock">
 <h3>Functional requirements</h3>
-<ul class="docList">
-<li>Users can deposit the underlying asset and receive shares priced by <span class="mono" style="display:inline">convertToShares</span>, and withdraw shares for a proportional amount of assets.<span>FR-01 &middot; FR-02</span></li>
-<li>Share price must account for vault-held assets plus any assets currently deployed to the strategy.<span>FR-03</span></li>
-<li>A guardian role can pause deposits and withdrawals in an emergency without needing the full admin/timelock path.<span>FR-04</span></li>
-<li>An admin role, expected to be a Safe behind a timelock, can update the rewards distributor and unpause the vault.<span>FR-05</span></li>
-<li>Reward accrual uses pull-based accounting so claiming is never required to keep the vault itself functioning.<span>FR-06</span></li>
-</ul>
+<ul class="docList" id="specFunctional"></ul>
 </div>
 <div class="docBlock">
 <h3>Security requirements</h3>
-<ul class="docList">
-<li>The first-depositor share-price manipulation (donation/inflation attack) must be mitigated by construction, not by convention.<span>SR-01 &mdash; see TM-001</span></li>
-<li>All external value transfers must follow checks-effects-interactions and be covered by a reentrancy guard.<span>SR-02 &mdash; see TM-002</span></li>
-<li>Admin and guardian roles must be distinct, so an emergency pause never requires the slower timelocked path.<span>SR-03 &mdash; see TM-003</span></li>
-</ul>
+<ul class="docList" id="specSecurity"></ul>
 </div>
 <div class="docBlock">
 <h3>Out of scope</h3>
-<ul class="docList">
-<li>Cross-chain deployments of the same vault instance &mdash; tracked separately if the protocol expands beyond Base.</li>
-<li>On-chain strategy execution &mdash; the strategy is operated off-chain by the strategist role for v1.</li>
-</ul>
+<ul class="docList" id="specOutOfScope"></ul>
 </div>
 <div class="docBlock">
-<h3>Approvals</h3>
-<div class="approvalRow"><i>AR</i><span><b>Alex Rivera</b><span>Owner &mdash; locked specification v3</span></span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 20 20"><path d="m5 10 3.2 3.2L15 6.5"></path></svg></div>
-<div class="approvalRow"><i>SR</i><span><b>Security Reviewer</b><span>Reviewed threat model against v3</span></span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 20 20"><path d="m5 10 3.2 3.2L15 6.5"></path></svg></div>
+<h3>Assumptions to confirm</h3>
+<ul class="docList" id="specAssumptions"></ul>
 </div>
 </section>
 <!-- Threat Model -->

@@ -717,7 +717,7 @@ export function initWorkspace(
     }
   ];
 
-  if (onboard && onboardLog) {
+  if (false && onboard && onboardLog) {
     QUESTIONS.forEach(function(_, i){
       var d = document.createElement('span');
       d.className = 'onboard__dot';
@@ -845,6 +845,117 @@ export function initWorkspace(
       'I detected an EVM project — Solidity + Foundry, targeting Base. A few quick questions before I lock the spec, then I’ll move straight to threat modeling and code.',
       askStep
     );
+  }
+
+  /* ---------------- Prompt-driven specification generation ---------------- */
+  var specVersion = 0;
+
+  function addOnboardBubble(role, html){
+    onboardLog.insertAdjacentHTML('beforeend', bubbleHTML(role, html));
+    onboardBody.scrollTop = onboardBody.scrollHeight;
+  }
+
+  function setSpecText(id, value){
+    var node = $('#' + id);
+    if (node) node.textContent = value || '\u2014';
+  }
+
+  function renderSpecList(id, values, prefix){
+    var list = $('#' + id);
+    list.replaceChildren();
+    values.forEach(function(value, index){
+      var item = document.createElement('li');
+      item.appendChild(document.createTextNode(value));
+      var tag = document.createElement('span');
+      tag.textContent = prefix + '-' + String(index + 1).padStart(2, '0');
+      item.appendChild(tag);
+      list.appendChild(item);
+    });
+    if (!values.length) {
+      var empty = document.createElement('li');
+      empty.textContent = 'None specified.';
+      list.appendChild(empty);
+    }
+  }
+
+  function renderSpecification(specification){
+    setSpecText('specProject', specification.projectName);
+    setSpecText('specEcosystem', specification.ecosystem);
+    setSpecText('specKind', specification.contractKind);
+    setSpecText('specTargets', specification.targetNetworks);
+    setSpecText('specComplexity', specification.complexity);
+    setSpecText('specSummary', specification.summary);
+    var language = $('#specLanguage');
+    language.replaceChildren(document.createTextNode(specification.language || '\u2014'));
+    var framework = document.createElement('span');
+    framework.textContent = specification.framework || '';
+    language.appendChild(framework);
+    renderSpecList('specFunctional', specification.functionalRequirements, 'FR');
+    renderSpecList('specSecurity', specification.securityRequirements, 'SR');
+    renderSpecList('specOutOfScope', specification.outOfScope, 'OOS');
+    renderSpecList('specAssumptions', specification.assumptions, 'A');
+    setSpecText('onboardProject', specification.projectName);
+    setSpecText('onboardEcosystem', specification.ecosystem + ' \u00b7 ' + specification.targetNetworks);
+    setSpecText('specVersion', 'Generated v' + specVersion);
+  }
+
+  function showEnterButton(){
+    if ($('#onboardEnter')) return;
+    var button = document.createElement('button');
+    button.className = 'btn-primary';
+    button.id = 'onboardEnter';
+    button.type = 'button';
+    button.textContent = 'Open specification';
+    button.addEventListener('click', function(){ onboard.classList.add('is-hidden'); });
+    onboardFootInner.insertBefore(button, onboardForm);
+  }
+
+  async function generateSpecification(prompt){
+    onboardSend.disabled = true;
+    onboardInput.disabled = true;
+    onboardLog.insertAdjacentHTML('beforeend', typingHTML());
+    var typingEl = onboardLog.lastElementChild;
+    onboardBody.scrollTop = onboardBody.scrollHeight;
+
+    try {
+      var response = await fetch('/api/specification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      var result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Specification generation failed.');
+      typingEl.remove();
+      specVersion++;
+      renderSpecification(result.specification);
+      addOnboardBubble('agent', '<p>Your prompt has been converted into a structured specification. Review it in the workspace, or describe a change here to regenerate it.</p>');
+      showEnterButton();
+    } catch (error) {
+      typingEl.remove();
+      var message = error instanceof Error ? error.message : 'Specification generation failed.';
+      addOnboardBubble('agent', '<p>' + escapeHtml(message) + ' Update the prompt below and try again.</p>');
+    } finally {
+      onboardSend.disabled = false;
+      onboardInput.disabled = false;
+      onboardInput.focus();
+    }
+  }
+
+  if (onboard && onboardLog) {
+    var projectPrompt = initialPrompt || 'Describe the software project you want to build.';
+    addOnboardBubble('user', escapeHtml(projectPrompt));
+    addOnboardBubble('agent', '<p>Generating a specification from your request\u2026</p>');
+    generateSpecification(projectPrompt);
+
+    onboardForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var refinement = onboardInput.value.trim();
+      if (!refinement || onboardSend.disabled) return;
+      onboardInput.value = '';
+      projectPrompt += '\n\nUser refinement: ' + refinement;
+      addOnboardBubble('user', escapeHtml(refinement));
+      generateSpecification(projectPrompt);
+    });
   }
 
   /* Seed the in-workspace chat with a primer so it isn't empty on first open. */

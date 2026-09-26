@@ -161,8 +161,8 @@
    ========================================================= */
 .x0a-workspace-root .main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;height:100svh;overflow:hidden}
 
-.x0a-workspace-root .topbar{position:relative;z-index:30;display:flex;align-items:center;gap:.8rem;padding:.7rem max(var(--edge),env(safe-area-inset-right)) .7rem max(var(--edge),env(safe-area-inset-left));border-bottom:1px solid var(--line);background:rgba(8,8,10,.95);flex:none}
-.x0a-workspace-root .topbar__left{display:flex;align-items:center;gap:.7rem;min-width:0}
+.x0a-workspace-root .topbar{display:none}
+.x0a-workspace-root .topbar__left{display:none}
 .x0a-workspace-root .menuBtn,.x0a-workspace-root .wsIconBtn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;color:var(--fg);flex:none}
 .x0a-workspace-root .menuBtn:hover,.x0a-workspace-root .wsIconBtn:hover{background:var(--surface2)}
 .x0a-workspace-root .menuBtn svg,.x0a-workspace-root .wsIconBtn svg{width:18px;height:18px}

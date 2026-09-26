@@ -1331,7 +1331,7 @@ export function runLandingEngine(onLaunchApp: () => void) {
   const cur = { el: $('#cursor'), ring: $('#cursorRing'), dot: $('#cursorDot'), label: $('#cursorLabel'), rx: 0, ry: 0, shown: false };
   function initCursor() {
     if (!finePointer) return;
-    root.classList.add('has-cursor');
+    $('.landing-scope').classList.add('has-cursor');
     document.addEventListener('pointerover', (e: any) => {
       const t = e.target.closest ? e.target.closest('[data-cursor], a, button') : null;
       cur.el.classList.remove('is-link', 'is-view');

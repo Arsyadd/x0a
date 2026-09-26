@@ -602,7 +602,7 @@ main{position:relative;z-index:2}
 /* ---------- Cursor ---------- */
 .cursor{display:none}
 @media (hover:hover) and (pointer:fine){
-  .has-cursor,.has-cursor *{cursor:none!important}
+  .landing-scope.has-cursor,.landing-scope.has-cursor *{cursor:none!important}
   .cursor{display:block;position:fixed;inset:0;pointer-events:none;z-index:110;mix-blend-mode:difference;opacity:0;transition:opacity .4s}
   .cursor.is-on{opacity:1}
   .cursor.is-view{mix-blend-mode:normal}
