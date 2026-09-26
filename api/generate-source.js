@@ -1,3 +1,44 @@
+// src/server/dynamicAuth.ts
+import { createPublicKey, verify as verifySignature } from "node:crypto";
+var jwksCache = null;
+async function getDynamicKeySet(environmentId) {
+  if (jwksCache && jwksCache.expiresAt > Date.now()) return jwksCache.keys;
+  const response = await fetch(`https://app.dynamic.xyz/api/v0/sdk/${encodeURIComponent(environmentId)}/.well-known/jwks`);
+  if (!response.ok) throw new Error("Could not load Dynamic signing keys.");
+  const data = await response.json();
+  if (!Array.isArray(data.keys)) throw new Error("Dynamic signing keys are invalid.");
+  jwksCache = { keys: data.keys, expiresAt: Date.now() + 10 * 60 * 1e3 };
+  return data.keys;
+}
+async function verifyDynamicAuthToken(token, environmentId) {
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  try {
+    const header = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
+    const claims = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    if (!header.kid || !["RS256", "ES256"].includes(header.alg || "")) return false;
+    const now = Math.floor(Date.now() / 1e3);
+    if (typeof claims.exp !== "number" || claims.exp <= now) return false;
+    if (typeof claims.nbf === "number" && claims.nbf > now) return false;
+    if (Array.isArray(claims.scopes) && claims.scopes.includes("requiresAdditionalAuth")) return false;
+    const key = (await getDynamicKeySet(environmentId)).find((candidate) => candidate.kid === header.kid);
+    if (!key) return false;
+    const publicKey = createPublicKey({ key, format: "jwk" });
+    const signedData = Buffer.from(`${parts[0]}.${parts[1]}`);
+    const signature = Buffer.from(parts[2], "base64url");
+    if (header.alg === "RS256") return verifySignature("RSA-SHA256", signedData, publicKey, signature);
+    return verifySignature("sha256", signedData, { key: publicKey, dsaEncoding: "ieee-p1363" }, signature);
+  } catch {
+    return false;
+  }
+}
+async function isDynamicRequestAuthorized(request) {
+  const environmentId = process.env.VITE_DYNAMIC_ENVIRONMENT_ID;
+  const authorization = request.headers.authorization || "";
+  const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+  return Boolean(environmentId && token && await verifyDynamicAuthToken(token, environmentId));
+}
+
 // src/server/geminiConfig.ts
 function getGeminiApiKey() {
   const rawKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.VITE_GEMINI_API_KEY;
@@ -751,6 +792,12 @@ async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
     res.end();
+    return;
+  }
+  if (!await isDynamicRequestAuthorized(req)) {
+    res.statusCode = 401;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: "Please sign in to use this feature." }));
     return;
   }
   if (req.method !== "POST") {

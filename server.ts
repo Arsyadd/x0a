@@ -9,11 +9,23 @@ import {
 import { generateSourceCode } from './src/server/sourceGenerator';
 import { handleAgentChat } from './src/server/agentChat';
 import { auditCode } from './src/server/securityAudit';
+import { verifyDynamicAuthToken } from './src/server/dynamicAuth';
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(express.json({ limit: '64kb' }));
+
+app.use('/api', async (req, res, next) => {
+  const environmentId = process.env.VITE_DYNAMIC_ENVIRONMENT_ID;
+  const authorization = req.header('authorization') || '';
+  const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!environmentId || !token || !(await verifyDynamicAuthToken(token, environmentId))) {
+    res.status(401).json({ error: 'Please sign in to use this feature.' });
+    return;
+  }
+  next();
+});
 
 app.post('/api/specification', async (req, res) => {
   const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';

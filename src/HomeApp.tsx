@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DynamicWidget } from '@dynamic-labs/sdk-react-core';
+import type { ProjectIntake, ProjectSourceFile } from './types/projectIntake';
 import './app.css';
 
 interface HomeAppProps {
   onBackToLanding: () => void;
-  onOpenWorkspace: (prompt: string) => void;
+  onOpenWorkspace: (request: ProjectIntake) => void;
 }
 
 export default function HomeApp({
@@ -21,6 +22,10 @@ export default function HomeApp({
   const [composerMode, setComposerMode] = useState<'new' | 'analyze' | 'deployment' | 'import'>('new');
   const [selectedEco, setSelectedEco] = useState('auto');
   const [promptText, setPromptText] = useState('');
+  const [sourceFiles, setSourceFiles] = useState<ProjectSourceFile[]>([]);
+  const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
+  const [referenceDraft, setReferenceDraft] = useState('');
+  const [referenceFormOpen, setReferenceFormOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [channelNotice, setChannelNotice] = useState('');
 
@@ -57,6 +62,7 @@ export default function HomeApp({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
+  const sourceInputRef = useRef<HTMLInputElement>(null);
 
   // Filtered notifications
   const visibleNotifs = notifs.filter(n => notifEvents[n.type]);
@@ -65,7 +71,7 @@ export default function HomeApp({
   const unreadCount = unreadNotifs.length;
 
   const MODES: Record<string, { ph: string; hint: string; tools: string[] }> = {
-    new: { ph: 'Describe the smart contract you want — e.g. an overcollateralized lending market on an EVM L2, with a liquidation keeper and a pausable emergency switch…', hint: 'x0a picks the chain, VM and contract language automatically — or choose an ecosystem above.', tools: [] },
+    new: { ph: 'Describe the smart contract you want — e.g. an overcollateralized lending market on an EVM L2, with a liquidation keeper and a pausable emergency switch…', hint: 'Choose the target chain and network in the specification review before generation.', tools: ['source', 'repo'] },
     analyze: { ph: 'Paste a repository URL, or use Source / ZIP below to hand x0a a smart contract project to reconstruct and audit…', hint: 'x0a reconstructs the architecture and threat model before running a full security pass.', tools: ['source', 'zip', 'repo'] },
     deployment: { ph: 'Paste a deployed contract address or program ID, and tell us which chain and network it lives on…', hint: 'x0a discovers on-chain metadata — authorities, dependencies and current state.', tools: ['address'] },
     import: { ph: 'Drop a ZIP, connect a repository, or paste a folder path — x0a picks up the contract’s lifecycle from wherever it left off…', hint: 'Existing tests, configs and prior audits are kept, not discarded.', tools: ['source', 'zip', 'repo'] }
@@ -108,6 +114,54 @@ export default function HomeApp({
     setComposerMode('new');
     composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => textareaRef.current?.focus(), 300);
+  };
+
+  const handleSourceFiles = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    const maxFileBytes = 256 * 1024;
+    const maxTotalCharacters = 80_000;
+    const accepted: ProjectSourceFile[] = [];
+    let totalCharacters = sourceFiles.reduce((total, file) => total + file.content.length, 0);
+
+    for (const file of Array.from(fileList)) {
+      if (file.size > maxFileBytes) {
+        setChannelNotice(`${file.name} is too large. Attach text or source files under 256 KB.`);
+        continue;
+      }
+      if (totalCharacters >= maxTotalCharacters) {
+        setChannelNotice('The total attached text limit is 80,000 characters. Remove a file before adding more.');
+        break;
+      }
+
+      try {
+        const content = (await file.text()).slice(0, maxTotalCharacters - totalCharacters);
+        if (!content.trim()) continue;
+        accepted.push({ name: file.name, content });
+        totalCharacters += content.length;
+      } catch {
+        setChannelNotice(`Could not read ${file.name}. Try a text, documentation, or source-code file.`);
+      }
+    }
+
+    if (accepted.length) {
+      setSourceFiles((current) => [...current, ...accepted]);
+      setChannelNotice(`${accepted.length} file${accepted.length === 1 ? '' : 's'} added to the specification request.`);
+    }
+  };
+
+  const handleAddReference = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = referenceDraft.trim();
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Invalid protocol');
+      if (!referenceLinks.includes(url.toString())) setReferenceLinks((current) => [...current, url.toString()]);
+      setReferenceDraft('');
+      setReferenceFormOpen(false);
+      setChannelNotice('Reference link added. Its public page content will be included for requirement extraction.');
+    } catch {
+      setChannelNotice('Enter a valid http or https reference URL.');
+    }
   };
 
   const handleNotificationClick = (item: any) => {
@@ -521,6 +575,20 @@ export default function HomeApp({
                   onChange={e => setPromptText(e.target.value)}
                 />
 
+                <input
+                  ref={sourceInputRef}
+                  className="sr-only"
+                  type="file"
+                  multiple
+                  accept=".txt,.md,.sol,.vy,.rs,.move,.cairo,.ts,.tsx,.js,.jsx,.json,.toml,.yaml,.yml,.html,.csv"
+                  aria-label="Attach requirement or source files"
+                  onChange={event => {
+                    void handleSourceFiles(event.currentTarget.files);
+                    event.currentTarget.value = '';
+                  }}
+                />
+                <span className="sr-only" id="sourceFileTypesNote">Supported: plain-text specifications, documentation, and source-code files up to 256 KB each.</span>
+
                 {composerMode === 'new' && (
                   <div className="promptSuggestions" aria-label="Suggested smart contract prompts">
                     <span className="promptSuggestions__label">Start with an example</span>
@@ -539,6 +607,37 @@ export default function HomeApp({
                   </div>
                 )}
 
+                {referenceFormOpen && composerMode === 'new' && (
+                  <form className="composer__referenceForm" onSubmit={handleAddReference}>
+                    <input
+                      type="url"
+                      value={referenceDraft}
+                      onChange={event => setReferenceDraft(event.target.value)}
+                      placeholder="https://docs.example.com/protocol"
+                      aria-label="Reference URL"
+                      required
+                    />
+                    <button className="btn-ghost" type="submit">Add link</button>
+                  </form>
+                )}
+
+                {(sourceFiles.length > 0 || referenceLinks.length > 0) && (
+                  <div className="composer__sources" aria-label="Attached sources">
+                    {sourceFiles.map(file => (
+                      <button key={file.name} type="button" className="sourceTag" onClick={() => setSourceFiles(files => files.filter(item => item.name !== file.name))} aria-label={`Remove ${file.name}`} title="Remove file">
+                        {file.name}<span aria-hidden="true">×</span>
+                      </button>
+                    ))}
+                    {referenceLinks.map(link => (
+                      <button key={link} type="button" className="sourceTag" onClick={() => setReferenceLinks(links => links.filter(item => item !== link))} aria-label={`Remove ${link}`} title="Remove link">
+                        {new URL(link).hostname}<span aria-hidden="true">×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {channelNotice && <p className="composer__notice" role="status">{channelNotice}</p>}
+
                 <div className="composer__row">
                   {(['source', 'zip', 'repo', 'address'] as const).map(tool => {
                     const isVis = MODES[composerMode].tools.includes(tool);
@@ -548,11 +647,15 @@ export default function HomeApp({
                         className={`tool ${isVis ? 'is-visible' : ''}`}
                         data-tool={tool}
                         data-tip={`Upload ${tool}`}
-                        onClick={() => alert(`${tool.toUpperCase()} input option selected.`)}
+                        onClick={() => {
+                          if (tool === 'source') sourceInputRef.current?.click();
+                          else if (tool === 'repo') setReferenceFormOpen(open => !open);
+                          else alert(`${tool.toUpperCase()} input option selected.`);
+                        }}
                       >
-                        {tool === 'source' && 'Source'}
+                        {tool === 'source' && 'Attach files'}
                         {tool === 'zip' && 'ZIP'}
-                        {tool === 'repo' && 'Repository'}
+                        {tool === 'repo' && 'Add link'}
                         {tool === 'address' && 'Address'}
                       </button>
                     );
@@ -587,14 +690,19 @@ export default function HomeApp({
                   <p className="composer__hint">{currentHint}</p>
                   <button
                     className="send"
-                    disabled={promptText.trim().length === 0}
+                    disabled={promptText.trim().length === 0 && sourceFiles.length === 0 && referenceLinks.length === 0}
                     aria-label="Start project"
                     onClick={() => {
                       const prompt = promptText.trim();
 
-                      if (!prompt) return;
+                      if (!prompt && sourceFiles.length === 0 && referenceLinks.length === 0) return;
 
-                      onOpenWorkspace(prompt);
+                      onOpenWorkspace({
+                        prompt: prompt || 'Extract the smart contract requirements from the attached source files and public reference links. Identify unknowns as assumptions or questions.',
+                        ecosystemHint: selectedEco === 'auto' ? undefined : selectedEco,
+                        files: sourceFiles,
+                        links: referenceLinks,
+                      });
                     }}
                   >
                     <svg

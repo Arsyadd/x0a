@@ -32,6 +32,12 @@ export interface Specification {
   securityRequirements: string[];
   outOfScope: string[];
   assumptions: string[];
+  selectedEcosystem: string;
+  selectedChain: string;
+  selectedNetwork: string;
+  compatibilityStatus: 'compatible' | 'review' | 'incompatible';
+  compatibilityExplanation: string;
+  recommendations: string[];
 }
 
 export class SpecificationGenerationError extends Error {
@@ -75,6 +81,12 @@ const SPEC_SCHEMA = {
       items: { type: SchemaType.STRING },
       description: 'List of technical assumptions',
     },
+    selectedEcosystem: { type: SchemaType.STRING, description: 'The exact ecosystem selected by the user' },
+    selectedChain: { type: SchemaType.STRING, description: 'The exact chain selected by the user' },
+    selectedNetwork: { type: SchemaType.STRING, description: 'The exact network selected by the user' },
+    compatibilityStatus: { type: SchemaType.STRING, description: 'One of compatible, review, or incompatible' },
+    compatibilityExplanation: { type: SchemaType.STRING, description: 'Explain compatibility or incompatibility with the selected ecosystem, chain, and network. Never change the user selection.' },
+    recommendations: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: 'When incompatible or requiring review, recommend compatible contract type, ecosystem/chain, and network. Empty when compatible.' },
   },
   required: [
     'projectName',
@@ -89,6 +101,12 @@ const SPEC_SCHEMA = {
     'securityRequirements',
     'outOfScope',
     'assumptions',
+    'selectedEcosystem',
+    'selectedChain',
+    'selectedNetwork',
+    'compatibilityStatus',
+    'compatibilityExplanation',
+    'recommendations',
   ],
 };
 
@@ -101,6 +119,10 @@ const CANDIDATE_MODELS = [
 export interface SpecificationOptions {
   projectName?: string;
   targetNetwork?: string;
+  selectedEcosystem?: string;
+  selectedChain?: string;
+  selectedNetwork?: string;
+  isTestnet?: boolean;
 }
 
 export async function generateSpecification(
@@ -110,14 +132,16 @@ export async function generateSpecification(
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
     console.info('API key is not set on the server. Generating structured specification from requirements.');
-    return generateFallbackSpecification(prompt, options);
+    return applyTargetSelection(generateFallbackSpecification(prompt, options), prompt, options);
   }
 
   const promptDirective = [
-    'You are the Requirement Agent for smart contract systems. Create an implementation-ready software specification using only the project request below.',
+    'You are the Requirement Agent for smart contract systems. Create an implementation-ready software specification by reconciling the request, attached source material, linked reference excerpts, and explicit target selection.',
     options?.projectName ? `Required Project Name: "${options.projectName}". Use this exact name for projectName.` : '',
-    options?.targetNetwork ? `Required Target Network: "${options.targetNetwork}". Use this exact target for targetNetworks.` : '',
-    'Never use the words Gemini, Gemini AI, AI, or Artificial Intelligence in any field or description. Do not assume it is a blockchain project unless the request says so. Mark unknowns as assumptions instead of inventing facts. Return valid JSON with exactly the required fields. Keep requirements specific to the request.\n\nProject request:\n' + prompt,
+    options?.selectedEcosystem ? `User-selected ecosystem (must remain unchanged): "${options.selectedEcosystem}".` : '',
+    options?.selectedChain ? `User-selected chain (must remain unchanged): "${options.selectedChain}".` : '',
+    options?.selectedNetwork ? `User-selected network (must remain unchanged): "${options.selectedNetwork}"${options.isTestnet ? ' (testnet)' : ' (production/mainnet)'}.` : '',
+    'Evaluate whether the requested contract type and requirements are compatible with the exact user-selected ecosystem, chain, and network. Set compatibilityStatus to compatible, review, or incompatible. Explain concrete issues and give actionable alternatives in recommendations when needed. Do not silently change any user selection; selectedEcosystem, selectedChain, selectedNetwork, and targetNetworks must preserve the requested selection. Never use the words Gemini, Gemini AI, AI, or Artificial Intelligence in user-facing fields. Mark unknowns as assumptions instead of inventing facts. Keep every requirement specific to the supplied material.\n\nProject request and extracted source material:\n' + prompt,
   ].filter(Boolean).join('\n');
 
   try {
@@ -133,17 +157,43 @@ export async function generateSpecification(
         if (options?.projectName && options.projectName.trim()) {
           spec.projectName = options.projectName.trim();
         }
-        if (options?.targetNetwork && options.targetNetwork.trim()) {
-          spec.targetNetworks = options.targetNetwork.trim();
-        }
-        return spec;
+        return applyTargetSelection(spec, prompt, options);
       }
     }
   } catch (error) {
     console.warn('Gemini specification API call failed, generating fallback:', error);
   }
 
-  return generateFallbackSpecification(prompt, options);
+  return applyTargetSelection(generateFallbackSpecification(prompt, options), prompt, options);
+}
+
+function applyTargetSelection(spec: Specification, prompt: string, options?: SpecificationOptions): Specification {
+  const inferredEcosystem = spec.ecosystem;
+  const ecosystem = options?.selectedEcosystem?.trim() || spec.ecosystem;
+  const chain = options?.selectedChain?.trim() || ecosystem;
+  const network = options?.selectedNetwork?.trim() || options?.targetNetwork?.trim() || spec.targetNetworks;
+  const lower = prompt.toLowerCase();
+  const explicitlyDifferent = (ecosystem.toLowerCase() === 'evm' && /\b(anchor|solana program|move package|cairo contract)\b/.test(lower)) ||
+    (/\b(solana|sui|aptos|starknet|cosmos|near|polkadot|cardano)\b/.test(lower) &&
+      !lower.includes(ecosystem.toLowerCase()));
+
+  spec.selectedEcosystem = ecosystem;
+  spec.selectedChain = chain;
+  spec.selectedNetwork = network;
+  spec.ecosystem = ecosystem;
+  spec.targetNetworks = network;
+
+  if (explicitlyDifferent && spec.compatibilityStatus !== 'incompatible') {
+    spec.compatibilityStatus = 'incompatible';
+    spec.compatibilityExplanation = `The request appears to target a different execution model than the selected ${ecosystem} ecosystem / ${chain} chain. The selection is unchanged.`;
+    spec.recommendations = [`Keep ${ecosystem} · ${chain} · ${network} selected and redesign the contract for its native execution model, or choose an ecosystem matching the requested contract (${inferredEcosystem}).`].concat(spec.recommendations || []);
+  } else if (!spec.compatibilityStatus || !spec.compatibilityExplanation) {
+    spec.compatibilityStatus = 'review';
+    spec.compatibilityExplanation = `The request will be built for your selected ${ecosystem} ecosystem, ${chain} chain, and ${network} network. Confirm its requirements and security assumptions before generation.`;
+    spec.recommendations = [];
+  }
+
+  return spec;
 }
 
 function validateSpecification(data: any): data is Specification {
@@ -157,8 +207,16 @@ function validateSpecification(data: any): data is Specification {
       Array.isArray(data[field]) &&
       data[field].every((item: unknown) => typeof item === 'string'),
   );
+  const validCompatibility =
+    typeof data.selectedEcosystem === 'string' &&
+    typeof data.selectedChain === 'string' &&
+    typeof data.selectedNetwork === 'string' &&
+    ['compatible', 'review', 'incompatible'].includes(data.compatibilityStatus) &&
+    typeof data.compatibilityExplanation === 'string' &&
+    Array.isArray(data.recommendations) &&
+    data.recommendations.every((item: unknown) => typeof item === 'string');
 
-  return validStrings && validLists;
+  return validStrings && validLists && validCompatibility;
 }
 
 function generateFallbackSpecification(
@@ -325,6 +383,12 @@ function generateFallbackSpecification(
       'Deployed on standard EVM or target VM compatible testnets prior to mainnet',
       'Caller pays required gas fees per transaction invocation',
     ],
+    selectedEcosystem: options?.selectedEcosystem || ecosystem,
+    selectedChain: options?.selectedChain || options?.selectedEcosystem || ecosystem,
+    selectedNetwork: options?.selectedNetwork || options?.targetNetwork || targetNetworks,
+    compatibilityStatus: 'review',
+    compatibilityExplanation: 'Review the selected target against the protocol requirements and ecosystem-specific security model.',
+    recommendations: [],
   };
 }
 

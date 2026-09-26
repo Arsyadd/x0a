@@ -10,6 +10,12 @@ export const workspaceMarkup = `
 <span class="onboard__eco" id="onboardEcosystem">Specification</span>
 <div aria-hidden="true" class="onboard__steps" id="onboardSteps"></div>
 </div>
+<section class="onboardTarget" aria-label="Deployment target">
+<label><span>Ecosystem</span><select id="targetEcosystem" aria-label="Choose ecosystem"></select></label>
+<label><span>Chain</span><select id="targetChain" aria-label="Choose chain"></select></label>
+<label><span>Network</span><select id="targetNetwork" aria-label="Choose network"></select></label>
+<p id="targetNetworkNotice" class="onboardTarget__notice" role="status"></p>
+</section>
 <div class="onboard__body">
 <div class="onboard__log msgList" id="onboardLog"></div>
 </div>
@@ -279,6 +285,15 @@ export const workspaceMarkup = `
 <div class="docBlock">
 <h3>Out of scope</h3>
 <ul class="docList" id="specOutOfScope"></ul>
+</div>
+<div class="docBlock">
+<h3>Selected deployment target</h3>
+<p id="specCompatibility" class="compatibilityText">Choose an ecosystem, chain, and network during specification review.</p>
+<ul class="docList" id="specRecommendations"></ul>
+</div>
+<div class="docBlock">
+<h3>Source material</h3>
+<ul class="docList" id="specSourceMaterial"></ul>
 </div>
 <div class="docBlock">
 <h3>Assumptions to confirm</h3>

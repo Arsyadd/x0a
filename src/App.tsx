@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 
 import LandingPage from './LandingPage';
 import HomeApp from './HomeApp';
 import WorkspacePage from './workspace/WorkspacePage';
+import type { ProjectIntake } from './types/projectIntake';
 
 type View = 'landing' | 'app' | 'workspace';
 
@@ -17,15 +19,18 @@ const getViewFromHash = (): View => {
 };
 
 export default function App() {
-  const [view, setView] = useState<View>(() => {
-    return getViewFromHash();
-  });
+  const isLoggedIn = useIsLoggedIn();
+  const { sdkHasLoaded, setShowAuthFlow } = useDynamicContext();
+  const [view, setView] = useState<View>('landing');
 
   const [workspacePrompt, setWorkspacePrompt] = useState('');
+  const [workspaceRequest, setWorkspaceRequest] = useState<ProjectIntake>({ prompt: '', files: [], links: [] });
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const wipeRef = useRef<HTMLDivElement>(null);
   const wipeLabelRef = useRef<HTMLSpanElement>(null);
+  const pendingViewRef = useRef<View | null>(null);
+  const wasLoggedInRef = useRef(isLoggedIn);
 
   const triggerWipe = (
     label: string,
@@ -120,6 +125,14 @@ export default function App() {
     const handleHashChange = () => {
       const targetView = getViewFromHash();
 
+      if (targetView !== 'landing' && (!sdkHasLoaded || !isLoggedIn)) {
+        pendingViewRef.current = targetView;
+        if (sdkHasLoaded) setShowAuthFlow(true);
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#landing`);
+        setView('landing');
+        return;
+      }
+
       if (targetView === view || isTransitioning) {
         return;
       }
@@ -154,9 +167,44 @@ export default function App() {
         handleHashChange
       );
     };
-  }, [view, isTransitioning]);
+  }, [view, isTransitioning, isLoggedIn, sdkHasLoaded, setShowAuthFlow]);
+
+  useEffect(() => {
+    if (!sdkHasLoaded) return;
+
+    if (!isLoggedIn) {
+      if (pendingViewRef.current) setShowAuthFlow(true);
+      const requestedView = getViewFromHash();
+      if (!wasLoggedInRef.current && requestedView !== 'landing') {
+        pendingViewRef.current = requestedView;
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#landing`);
+        setShowAuthFlow(true);
+      }
+      if (view !== 'landing') {
+        if (wasLoggedInRef.current) pendingViewRef.current = null;
+        else pendingViewRef.current = view;
+        setView('landing');
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#landing`);
+      }
+      wasLoggedInRef.current = false;
+      return;
+    }
+
+    wasLoggedInRef.current = true;
+    const pendingView = pendingViewRef.current;
+    if (pendingView && pendingView !== 'landing') {
+      pendingViewRef.current = null;
+      window.location.hash = pendingView;
+      setView(pendingView);
+    }
+  }, [isLoggedIn, sdkHasLoaded, view]);
 
   const navigateToApp = () => {
+    if (!sdkHasLoaded || !isLoggedIn) {
+      pendingViewRef.current = 'app';
+      if (sdkHasLoaded) setShowAuthFlow(true);
+      return;
+    }
     if (view === 'app' || isTransitioning) return;
 
     window.location.hash = 'app';
@@ -166,11 +214,17 @@ export default function App() {
     });
   };
 
-  const navigateToWorkspace = (prompt?: string) => {
-  if (prompt !== undefined) {
-    setWorkspacePrompt(prompt);
+  const navigateToWorkspace = (request?: ProjectIntake) => {
+  if (request !== undefined) {
+    setWorkspacePrompt(request.prompt);
+    setWorkspaceRequest(request);
   }
 
+  if (!sdkHasLoaded || !isLoggedIn) {
+    pendingViewRef.current = 'workspace';
+    if (sdkHasLoaded) setShowAuthFlow(true);
+    return;
+  }
   if (view === 'workspace' || isTransitioning) return;
 
   window.location.hash = 'workspace';
@@ -223,26 +277,31 @@ export default function App() {
     <div
       id="app-view-root"
       style={{
-        display: view === 'app' ? 'block' : 'none',
+        display: view === 'app' && isLoggedIn ? 'block' : 'none',
       }}
     >
-      <HomeApp
-        onBackToLanding={navigateToLanding}
-        onOpenWorkspace={navigateToWorkspace}
-      />
+      {isLoggedIn && view === 'app' && (
+        <HomeApp
+          onBackToLanding={navigateToLanding}
+          onOpenWorkspace={navigateToWorkspace}
+        />
+      )}
     </div>
 
     {/* Workspace */}
     <div
       id="workspace-view-root"
       style={{
-        display: view === 'workspace' ? 'block' : 'none',
+        display: view === 'workspace' && isLoggedIn ? 'block' : 'none',
       }}
     >
-      <WorkspacePage
-        key={workspacePrompt}
-        initialPrompt={workspacePrompt}
-      />
+      {isLoggedIn && view === 'workspace' && (
+        <WorkspacePage
+          key={workspacePrompt}
+          initialPrompt={workspacePrompt}
+          initialRequest={workspaceRequest}
+        />
+      )}
     </div>
 
   </div>

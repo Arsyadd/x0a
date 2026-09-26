@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { isDynamicRequestAuthorized } from '../server/dynamicAuth';
 import { handleAgentChat } from '../server/agentChat';
 
 interface ExtendedRequest extends IncomingMessage {
@@ -40,6 +41,13 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     res.end();
+    return;
+  }
+
+  if (!(await isDynamicRequestAuthorized(req))) {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Please sign in to use this feature.' }));
     return;
   }
 

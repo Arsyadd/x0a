@@ -251,6 +251,45 @@ body.is-locked{overflow:hidden}
 .app-scope .promptSuggestions__list{display:flex;flex-wrap:wrap;gap:.4rem}
 .app-scope .promptSuggestions__item{padding:.34rem .72rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:.74rem;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
 .app-scope .promptSuggestions__item:hover,.app-scope .promptSuggestions__item:focus-visible{background:var(--surface2);color:var(--fg);border-color:var(--line-strong)}
+.app-scope .composer__referenceForm{display:flex;gap:.5rem;margin:-.1rem 0 .8rem}
+.app-scope .composer__referenceForm input{flex:1;min-width:0;padding:.58rem .75rem;border:1px solid var(--line);border-radius:9px;font-size:.8rem}
+.app-scope .composer__referenceForm input:focus{border-color:var(--blue-soft)}
+.app-scope .composer__sources{display:flex;flex-wrap:wrap;gap:.4rem;margin:-.1rem 0 .8rem}
+.app-scope .sourceTag{display:inline-flex;align-items:center;gap:.4rem;max-width:100%;padding:.28rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font-size:.68rem}
+.app-scope .sourceTag span{font-size:.9rem;color:var(--fg)}
+.app-scope .sourceTag{overflow:hidden}
+.app-scope .sourceTag:hover{border-color:var(--line-strong);color:var(--fg)}
+.app-scope .composer__notice{margin:-.3rem 0 .7rem;color:var(--muted);font-size:.72rem;line-height:1.45}
+
+@media (max-width:420px){
+  .app-scope .content{padding-top:1.35rem}
+  .app-scope .home__title{font-size:1.55rem;line-height:1.08}
+  .app-scope .home__lede{margin-bottom:1.35rem}
+  .app-scope .composer{padding:.85rem .8rem .8rem;margin-bottom:1.1rem;border-radius:16px}
+  .app-scope .composer__tabs{gap:.15rem;margin:0 -.15rem .7rem}
+  .app-scope .composer__tabs button{padding:.42rem .68rem;font-size:.72rem}
+  .app-scope .composer textarea{font-size:.92rem;min-height:5.2em}
+  .app-scope .promptSuggestions{margin-bottom:.8rem}
+  .app-scope .promptSuggestions__item{padding:.32rem .58rem;font-size:.7rem}
+  .app-scope .composer__referenceForm{flex-wrap:wrap}
+  .app-scope .composer__referenceForm .btn-ghost{padding:.48rem .72rem}
+  .app-scope .composer__row{gap:.45rem}
+  .app-scope .composer__foot{align-items:flex-end;gap:.65rem}
+  .app-scope .composer__hint{font-size:.72rem;line-height:1.45}
+  .app-scope .send{width:38px;height:38px}
+  .app-scope .recent__head{align-items:flex-start;flex-wrap:wrap;gap:.4rem .75rem}
+  .app-scope .recent__head h2{font-size:1rem}
+  .app-scope .pcard{padding:.85rem;border-radius:14px}
+  .app-scope .pcard__top{flex-wrap:wrap}
+}
+
+@media (max-width:360px){
+  .app-scope .topbar{gap:.45rem}
+  .app-scope .topbar__left{gap:.4rem}
+  .app-scope .topbar__right{gap:.1rem}
+  .app-scope .topbar__right>.btn-ghost{display:none}
+  .app-scope .composer__foot{align-items:center}
+}
 
 /* ---- Recent projects ---- */
 .app-scope .recent{margin-bottom:2.6rem}

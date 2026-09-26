@@ -520,6 +520,24 @@
    ========================================================= */
 
 /* ---- Base (phones, <640px) ---- */
+@media (max-width:639px){
+  .x0a-workspace-root .topbar{gap:.45rem;padding:.55rem 1rem}
+  .x0a-workspace-root .topbar__left{gap:.45rem}
+  .x0a-workspace-root .topbar__brand{gap:.35rem}
+  .x0a-workspace-root .crumb{font-size:.82rem}
+  .x0a-workspace-root .topbar__right{gap:0}
+  .x0a-workspace-root .wsToolbar{flex-wrap:wrap;gap:.35rem;overflow:hidden;padding:.45rem 1rem}
+  .x0a-workspace-root .wsSwitch{flex:1 1 0;min-width:0;margin:0;overflow-x:auto;scrollbar-width:none}
+  .x0a-workspace-root .wsSwitch::-webkit-scrollbar{display:none}
+  .x0a-workspace-root .wsSwitch button{flex:none;padding:.35rem .62rem;font-size:.7rem}
+  .x0a-workspace-root .wsToolbar__right{flex:1 1 100%;min-width:0;width:100%;margin:.05rem 0 0;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+  .x0a-workspace-root .wsToolbar__right::-webkit-scrollbar{display:none}
+  .x0a-workspace-root .wsTabs__back{padding:0 .65rem}
+  .x0a-workspace-root .wtab{gap:.4rem;padding:0 .7rem;font-size:.74rem}
+  .x0a-workspace-root .wsTabs__meta{padding:0 .45rem}
+  .x0a-workspace-root .wsPath{padding:.45rem 1rem;font-size:.74rem}
+  .x0a-workspace-root .statusbar{gap:.7rem;padding:.4rem 1rem max(.4rem,env(safe-area-inset-bottom));font-size:.65rem}
+}
 .x0a-workspace-root .view{padding:1.1rem 1rem 2.4rem}
 .x0a-workspace-root .field{padding:.7rem .8rem}
 .x0a-workspace-root .lineNo{width:2.2rem;padding-right:.6rem}
@@ -609,6 +627,12 @@
 .x0a-workspace-root .onboard__dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);transition:background .2s}
 .x0a-workspace-root .onboard__dot.is-done{background:var(--ok)}
 .x0a-workspace-root .onboard__dot.is-current{background:var(--blue-soft);box-shadow:0 0 0 3px var(--blue-dim)}
+.x0a-workspace-root .onboardTarget{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem;max-width:46rem;width:calc(100% - 2 * var(--edge));margin:.75rem auto 0;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.x0a-workspace-root .onboardTarget label{display:grid;gap:.3rem;min-width:0}
+.x0a-workspace-root .onboardTarget label span{font-size:.66rem;color:var(--muted)}
+.x0a-workspace-root .onboardTarget select{width:100%;min-width:0;padding:.48rem 1.6rem .48rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--fg);font:inherit;font-size:.72rem;text-overflow:ellipsis}
+.x0a-workspace-root .onboardTarget select:focus-visible{outline:2px solid var(--blue-soft);outline-offset:1px}
+.x0a-workspace-root .onboardTarget__notice{grid-column:1/-1;font-size:.66rem;color:var(--muted-2);line-height:1.4}
 
 .x0a-workspace-root .onboard__body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .x0a-workspace-root .onboard__log{max-width:42rem;margin:0 auto;padding:1.6rem var(--edge) 2rem}
@@ -630,9 +654,26 @@
 .x0a-workspace-root .specSummary div{display:flex;justify-content:space-between;gap:1rem;font-size:.78rem}
 .x0a-workspace-root .specSummary dt{color:var(--muted)}
 .x0a-workspace-root .specSummary dd{font-weight:560;text-align:right}
+.x0a-workspace-root .specSummary__sources{display:flex;flex-direction:column;gap:.45rem;margin-top:.65rem;padding-top:.65rem;border-top:1px solid var(--line)}
+.x0a-workspace-root .compatibilityStatus{display:inline-block;margin-bottom:.25rem;color:var(--ok);font-size:.7rem}
+.x0a-workspace-root .compatibilityStatus--review{color:var(--warn)}
+.x0a-workspace-root .compatibilityStatus--incompatible{color:var(--bad)}
+.x0a-workspace-root .specSummary__recommendations{margin-top:.7rem;padding:.65rem .75rem;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:.76rem;line-height:1.5}
+.x0a-workspace-root .specRecommendations{display:grid;gap:.35rem;margin:.45rem 0 0;padding-left:1rem;list-style:disc}
+.x0a-workspace-root .specReviewActions{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.35rem}
+.x0a-workspace-root .specReviewActions button{font-size:.73rem;padding:.48rem .7rem}
+.x0a-workspace-root .specReviewActions .btn-primary{flex:1 1 100%}
+.x0a-workspace-root .specReviewActions button:disabled{opacity:.5;cursor:default}
 
 @media (min-width:640px){
   .x0a-workspace-root .onboard__proj{display:inline}
+}
+@media (max-width:420px){
+  .x0a-workspace-root .onboardTarget{gap:.35rem;padding:.5rem}
+  .x0a-workspace-root .onboardTarget select{font-size:.66rem;padding:.45rem 1.2rem .45rem .4rem}
+  .x0a-workspace-root .specSummary div{align-items:flex-start;flex-direction:column;gap:.15rem}
+  .x0a-workspace-root .specSummary dd{text-align:left}
+  .x0a-workspace-root .specReviewActions{position:sticky;bottom:0;padding:.45rem 0;background:var(--bg)}
 }
 
 /* =========================================================
