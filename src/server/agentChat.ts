@@ -1,5 +1,5 @@
-import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { getGeminiApiKey } from './geminiConfig';
+import { callGemini, SchemaType } from './geminiClient';
 
 export interface AgentChatResponse {
   reply: string;
@@ -12,45 +12,39 @@ export interface AgentChatResponse {
   newEnvironment?: string;
 }
 
-const CANDIDATE_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-latest',
-];
-
 const CHAT_SCHEMA = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
     reply: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'Clear, helpful engineering explanation answering the user or explaining the architectural and security changes made. Answer in the same language as the user (e.g., Indonesian if asked in Indonesian, English if asked in English).',
     },
     hasCodeChanges: {
-      type: Type.BOOLEAN,
+      type: SchemaType.BOOLEAN,
       description: 'Whether code modifications are proposed.',
     },
     targetFile: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'The filename being modified (e.g. VaultCore.sol).',
     },
     diff: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'A clean unified diff showing the modification with lines prefixed by - and +.',
     },
     newCode: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'The entire updated source code of targetFile with the changes applied. Must be complete and valid Solidity/TOML.',
     },
     actionLabel: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'Short button label for applying the change, e.g. "Apply changes to VaultCore.sol".',
     },
     newNetwork: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'If the user asked to change/switch network (e.g. to Mainnet, Testnet, or Devnet), specify the target network identifier (e.g. "Base Mainnet (Production)", "Base Sepolia (Testnet)", or "Local Anvil (Devnet)").',
     },
     newEnvironment: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'The target environment tier: "Mainnet", "Testnet", or "Devnet".',
     },
   },
@@ -72,15 +66,6 @@ export async function handleAgentChat(
   if (!apiKey) {
     return generateFallbackChatResponse(message, currentFile, currentCode);
   }
-
-  const genClient = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
 
   const prompt = `You are the lead Contract Builder and Repair Agent on the x0a platform.
 You are assisting a developer in their smart contract workspace.
@@ -117,55 +102,30 @@ Instructions:
    - In reply, explain what was changed, the security rationale, and any invariant considerations.
 4. Keep the reply professional and direct without any emojis.`;
 
-  for (const model of CANDIDATE_MODELS) {
-    const isThinkingSupported = model.startsWith('gemini-3');
+  try {
+    const rawJson = await callGemini({
+      prompt,
+      responseMimeType: 'application/json',
+      responseSchema: CHAT_SCHEMA as Record<string, unknown>,
+    });
 
-    let modelStatus = 0;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const config: Record<string, unknown> = {
-          responseMimeType: 'application/json',
-          responseSchema: CHAT_SCHEMA,
+    if (rawJson) {
+      const parsed = JSON.parse(rawJson);
+      if (parsed && typeof parsed.reply === 'string') {
+        return {
+          reply: stripEmojis(parsed.reply),
+          hasCodeChanges: Boolean(parsed.hasCodeChanges),
+          targetFile: stripEmojis(parsed.targetFile || currentFile || 'VaultCore.sol'),
+          diff: parsed.diff ? stripEmojis(parsed.diff) : undefined,
+          newCode: parsed.newCode ? stripEmojis(parsed.newCode) : undefined,
+          actionLabel: stripEmojis(parsed.actionLabel || `Apply changes to ${currentFile || 'VaultCore.sol'}`),
+          newNetwork: parsed.newNetwork ? stripEmojis(parsed.newNetwork) : undefined,
+          newEnvironment: parsed.newEnvironment ? stripEmojis(parsed.newEnvironment) : undefined,
         };
-
-        if (isThinkingSupported) {
-          config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
-        }
-
-        const response = await genClient.models.generateContent({
-          model,
-          contents: [prompt],
-          config,
-        });
-
-        if (response && response.text) {
-          const parsed = JSON.parse(response.text);
-          if (parsed && typeof parsed.reply === 'string') {
-            return {
-              reply: stripEmojis(parsed.reply),
-              hasCodeChanges: Boolean(parsed.hasCodeChanges),
-              targetFile: stripEmojis(parsed.targetFile || currentFile || 'VaultCore.sol'),
-              diff: parsed.diff ? stripEmojis(parsed.diff) : undefined,
-              newCode: parsed.newCode ? stripEmojis(parsed.newCode) : undefined,
-              actionLabel: stripEmojis(parsed.actionLabel || `Apply changes to ${currentFile || 'VaultCore.sol'}`),
-              newNetwork: parsed.newNetwork ? stripEmojis(parsed.newNetwork) : undefined,
-              newEnvironment: parsed.newEnvironment ? stripEmojis(parsed.newEnvironment) : undefined,
-            };
-          }
-        }
-      } catch (error) {
-        const status = (error && typeof error === 'object' && 'status' in error) ? Number((error as any).status) : 0;
-        modelStatus = status;
-        if (status === 403 || status === 401) {
-          break;
-        }
-        // Retry or fallback to next model
-        await new Promise((r) => setTimeout(r, 600));
       }
     }
-    if (modelStatus === 403 || modelStatus === 401) {
-      break;
-    }
+  } catch (error) {
+    console.warn('Gemini chat API call failed, using fallback:', error);
   }
 
   return generateFallbackChatResponse(message, currentFile, currentCode);

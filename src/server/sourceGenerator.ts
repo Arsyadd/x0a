@@ -1,6 +1,6 @@
-import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import type { Specification } from './specification';
 import { getGeminiApiKey } from './geminiConfig';
+import { callGemini, SchemaType } from './geminiClient';
 
 export interface GeneratedFile {
   name: string;
@@ -35,64 +35,58 @@ export interface GeneratedSourceBundle {
   architectureSummary: string;
 }
 
-const CANDIDATE_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-latest',
-];
-
 const SOURCE_SCHEMA = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
     primaryFile: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'The filename of the primary core smart contract, e.g. VaultCore.sol, StakingPool.sol, Marketplace.sol, etc.',
     },
     architectureSummary: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: 'A 2-3 sentence technical overview of the contract architecture generated.',
     },
     files: {
-      type: Type.ARRAY,
+      type: SchemaType.ARRAY,
       description: 'Complete source files for this smart contract system.',
       items: {
-        type: Type.OBJECT,
+        type: SchemaType.OBJECT,
         properties: {
-          name: { type: Type.STRING, description: 'Filename, e.g. VaultCore.sol or interfaces/IVault.sol' },
-          language: { type: Type.STRING, description: 'Language: solidity or toml' },
-          description: { type: Type.STRING, description: 'Short summary of the file purpose' },
-          isPrimary: { type: Type.BOOLEAN, description: 'Whether this is the primary contract' },
-          code: { type: Type.STRING, description: 'The complete, production-ready source code of the file. Must NOT be truncated or placeholder.' },
+          name: { type: SchemaType.STRING, description: 'Filename, e.g. VaultCore.sol or interfaces/IVault.sol' },
+          language: { type: SchemaType.STRING, description: 'Language: solidity or toml' },
+          description: { type: SchemaType.STRING, description: 'Short summary of the file purpose' },
+          isPrimary: { type: SchemaType.BOOLEAN, description: 'Whether this is the primary contract' },
+          code: { type: SchemaType.STRING, description: 'The complete, production-ready source code of the file. Must NOT be truncated or placeholder.' },
         },
         required: ['name', 'language', 'description', 'code'],
       },
     },
     threatModel: {
-      type: Type.ARRAY,
+      type: SchemaType.ARRAY,
       description: 'Threat model entries identified for this specific contract architecture.',
       items: {
-        type: Type.OBJECT,
+        type: SchemaType.OBJECT,
         properties: {
-          id: { type: Type.STRING, description: 'e.g. TM-001' },
-          title: { type: Type.STRING, description: 'Threat name' },
-          severity: { type: Type.STRING, description: 'Critical, High, Medium, or Low' },
-          asset: { type: Type.STRING, description: 'Affected function or asset' },
-          mitigation: { type: Type.STRING, description: 'How the code mitigates this threat' },
-          status: { type: Type.STRING, description: 'Resolved or Accepted residual risk' },
+          id: { type: SchemaType.STRING, description: 'e.g. TM-001' },
+          title: { type: SchemaType.STRING, description: 'Threat name' },
+          severity: { type: SchemaType.STRING, description: 'Critical, High, Medium, or Low' },
+          asset: { type: SchemaType.STRING, description: 'Affected function or asset' },
+          mitigation: { type: SchemaType.STRING, description: 'How the code mitigates this threat' },
+          status: { type: SchemaType.STRING, description: 'Resolved or Accepted residual risk' },
         },
         required: ['id', 'title', 'severity', 'asset', 'mitigation', 'status'],
       },
     },
     adrs: {
-      type: Type.ARRAY,
+      type: SchemaType.ARRAY,
       description: 'Architecture Decision Records for this specification.',
       items: {
-        type: Type.OBJECT,
+        type: SchemaType.OBJECT,
         properties: {
-          id: { type: Type.STRING, description: 'e.g. ADR-001' },
-          title: { type: Type.STRING, description: 'Decision summary' },
-          explanation: { type: Type.STRING, description: 'Rationale and impact' },
-          status: { type: Type.STRING, description: 'Accepted' },
+          id: { type: SchemaType.STRING, description: 'e.g. ADR-001' },
+          title: { type: SchemaType.STRING, description: 'Decision summary' },
+          explanation: { type: SchemaType.STRING, description: 'Rationale and impact' },
+          status: { type: SchemaType.STRING, description: 'Accepted' },
         },
         required: ['id', 'title', 'explanation', 'status'],
       },
@@ -120,15 +114,6 @@ export async function generateSourceCode(
   if (!apiKey) {
     return generateFallbackSourceBundle(spec);
   }
-
-  const genClient = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
 
   const promptText = `You are the lead Contract Builder Agent on x0a.
 Your job is to generate the complete, production-ready, genuine smart contract source files from the locked specification below.
@@ -166,48 +151,21 @@ Generate the complete set of 4 to 6 files:
 
 Also generate 3-5 Threat Model entries and 3-4 ADRs directly reflecting these contracts. Return valid JSON following the schema.`;
 
-  for (const model of CANDIDATE_MODELS) {
-    const isThinkingSupported = model.startsWith('gemini-3');
+  try {
+    const rawJson = await callGemini({
+      prompt: promptText,
+      responseMimeType: 'application/json',
+      responseSchema: SOURCE_SCHEMA as Record<string, unknown>,
+    });
 
-    let modelStatus = 0;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const config: Record<string, unknown> = {
-          responseMimeType: 'application/json',
-          responseSchema: SOURCE_SCHEMA,
-        };
-
-        if (isThinkingSupported) {
-          config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
-        }
-
-        const response = await genClient.models.generateContent({
-          model,
-          contents: [promptText],
-          config,
-        });
-
-        if (response && response.text) {
-          const parsed = JSON.parse(response.text);
-          if (parsed && Array.isArray(parsed.files) && parsed.files.length >= 3) {
-            return formatBundle(parsed, spec);
-          }
-        }
-      } catch (error) {
-        const status = getErrorStatus(error);
-        modelStatus = status;
-        if (status === 403 || status === 401) {
-          break;
-        }
-        if (status !== 503 && status !== 429 && status !== 500 && status !== 504) {
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 800 + Math.random() * 400));
+    if (rawJson) {
+      const parsed = JSON.parse(rawJson);
+      if (parsed && Array.isArray(parsed.files) && parsed.files.length >= 3) {
+        return formatBundle(parsed, spec);
       }
     }
-    if (modelStatus === 403 || modelStatus === 401) {
-      break;
-    }
+  } catch (error) {
+    console.warn('Gemini source code generation failed, using fallback:', error);
   }
 
   // Fallback if API was unavailable

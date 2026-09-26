@@ -1,5 +1,5 @@
-import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { getGeminiApiKey } from './geminiConfig';
+import { callGemini, SchemaType } from './geminiClient';
 
 export interface SecurityFinding {
   id: string;
@@ -19,31 +19,25 @@ export interface SecurityAuditResult {
   summary: string;
 }
 
-const CANDIDATE_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-latest',
-];
-
 const AUDIT_SCHEMA = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
-    overallScore: { type: Type.INTEGER, description: 'Security score out of 100' },
-    gatePassed: { type: Type.BOOLEAN, description: 'Whether the code passes security gate' },
-    summary: { type: Type.STRING, description: 'Executive audit summary' },
+    overallScore: { type: SchemaType.INTEGER, description: 'Security score out of 100' },
+    gatePassed: { type: SchemaType.BOOLEAN, description: 'Whether the code passes security gate' },
+    summary: { type: SchemaType.STRING, description: 'Executive audit summary' },
     findings: {
-      type: Type.ARRAY,
+      type: SchemaType.ARRAY,
       items: {
-        type: Type.OBJECT,
+        type: SchemaType.OBJECT,
         properties: {
-          id: { type: Type.STRING, description: 'e.g. SEC-001' },
-          title: { type: Type.STRING, description: 'Vulnerability title' },
-          severity: { type: Type.STRING, description: 'Critical, High, Medium, Low, or Info' },
-          file: { type: Type.STRING, description: 'Filename where issue resides' },
-          line: { type: Type.STRING, description: 'Line number or range, e.g. line 42' },
-          description: { type: Type.STRING, description: 'Detailed technical risk analysis' },
-          recommendation: { type: Type.STRING, description: 'Concrete code remediation' },
-          status: { type: Type.STRING, description: 'Open or Resolved' },
+          id: { type: SchemaType.STRING, description: 'e.g. SEC-001' },
+          title: { type: SchemaType.STRING, description: 'Vulnerability title' },
+          severity: { type: SchemaType.STRING, description: 'Critical, High, Medium, Low, or Info' },
+          file: { type: SchemaType.STRING, description: 'Filename where issue resides' },
+          line: { type: SchemaType.STRING, description: 'Line number or range, e.g. line 42' },
+          description: { type: SchemaType.STRING, description: 'Detailed technical risk analysis' },
+          recommendation: { type: SchemaType.STRING, description: 'Concrete code remediation' },
+          status: { type: SchemaType.STRING, description: 'Open or Resolved' },
         },
         required: ['id', 'title', 'severity', 'file', 'line', 'description', 'recommendation', 'status'],
       },
@@ -65,15 +59,6 @@ export async function auditCode(
   if (!apiKey) {
     return generateFallbackAudit(files);
   }
-
-  const genClient = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
 
   const prompt = `You are the lead Security Auditor Agent on x0a.
 Conduct an adversarial security review and static analysis on the following smart contracts:
@@ -97,59 +82,35 @@ Review specifically for:
 
 Output structured findings with realistic line numbers, severity, and remediation recommendations without any emojis.`;
 
-  for (const model of CANDIDATE_MODELS) {
-    const isThinkingSupported = model.startsWith('gemini-3');
+  try {
+    const rawJson = await callGemini({
+      prompt,
+      responseMimeType: 'application/json',
+      responseSchema: AUDIT_SCHEMA as Record<string, unknown>,
+    });
 
-    let modelStatus = 0;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const config: Record<string, unknown> = {
-          responseMimeType: 'application/json',
-          responseSchema: AUDIT_SCHEMA,
+    if (rawJson) {
+      const parsed = JSON.parse(rawJson);
+      if (parsed && Array.isArray(parsed.findings)) {
+        return {
+          overallScore: Number(parsed.overallScore) || 90,
+          gatePassed: Boolean(parsed.gatePassed),
+          summary: stripEmojis(parsed.summary || ''),
+          findings: (parsed.findings || []).map((f: any) => ({
+            id: stripEmojis(f.id || 'SEC-001'),
+            title: stripEmojis(f.title || 'Security finding'),
+            severity: f.severity || 'Medium',
+            file: stripEmojis(f.file || 'VaultCore.sol'),
+            line: stripEmojis(f.line || 'line 1'),
+            description: stripEmojis(f.description || ''),
+            recommendation: stripEmojis(f.recommendation || ''),
+            status: f.status || 'Open',
+          })),
         };
-
-        if (isThinkingSupported) {
-          config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
-        }
-
-        const response = await genClient.models.generateContent({
-          model,
-          contents: [prompt],
-          config,
-        });
-
-        if (response && response.text) {
-          const parsed = JSON.parse(response.text);
-          if (parsed && Array.isArray(parsed.findings)) {
-            return {
-              overallScore: Number(parsed.overallScore) || 90,
-              gatePassed: Boolean(parsed.gatePassed),
-              summary: stripEmojis(parsed.summary || ''),
-              findings: (parsed.findings || []).map((f: any) => ({
-                id: stripEmojis(f.id || 'SEC-001'),
-                title: stripEmojis(f.title || 'Security finding'),
-                severity: f.severity || 'Medium',
-                file: stripEmojis(f.file || 'VaultCore.sol'),
-                line: stripEmojis(f.line || 'line 1'),
-                description: stripEmojis(f.description || ''),
-                recommendation: stripEmojis(f.recommendation || ''),
-                status: f.status || 'Open',
-              })),
-            };
-          }
-        }
-      } catch (error) {
-        const status = (error && typeof error === 'object' && 'status' in error) ? Number((error as any).status) : 0;
-        modelStatus = status;
-        if (status === 403 || status === 401) {
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 600));
       }
     }
-    if (modelStatus === 403 || modelStatus === 401) {
-      break;
-    }
+  } catch (error) {
+    console.warn('Gemini security audit API call failed, using fallback:', error);
   }
 
   return generateFallbackAudit(files);

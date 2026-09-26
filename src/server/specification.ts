@@ -1,5 +1,5 @@
-import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { getGeminiApiKey } from './geminiConfig';
+import { callGemini, SchemaType } from './geminiClient';
 
 const stringFields = [
   'projectName',
@@ -45,34 +45,34 @@ export class SpecificationGenerationError extends Error {
 }
 
 const SPEC_SCHEMA = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
-    projectName: { type: Type.STRING, description: 'Short project name' },
-    ecosystem: { type: Type.STRING, description: 'Target ecosystem e.g. EVM, Solana, Cosmos, Web, etc.' },
-    language: { type: Type.STRING, description: 'Primary programming language' },
-    framework: { type: Type.STRING, description: 'Framework or tooling' },
-    contractKind: { type: Type.STRING, description: 'Contract or application category' },
-    targetNetworks: { type: Type.STRING, description: 'Target networks or deployment environments' },
-    complexity: { type: Type.STRING, description: 'Estimated complexity (e.g. Low, Medium, High)' },
-    summary: { type: Type.STRING, description: 'Executive technical summary of the specification' },
+    projectName: { type: SchemaType.STRING, description: 'Short project name' },
+    ecosystem: { type: SchemaType.STRING, description: 'Target ecosystem e.g. EVM, Solana, Cosmos, Web, etc.' },
+    language: { type: SchemaType.STRING, description: 'Primary programming language' },
+    framework: { type: SchemaType.STRING, description: 'Framework or tooling' },
+    contractKind: { type: SchemaType.STRING, description: 'Contract or application category' },
+    targetNetworks: { type: SchemaType.STRING, description: 'Target networks or deployment environments' },
+    complexity: { type: SchemaType.STRING, description: 'Estimated complexity (e.g. Low, Medium, High)' },
+    summary: { type: SchemaType.STRING, description: 'Executive technical summary of the specification' },
     functionalRequirements: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: 'List of functional requirements',
     },
     securityRequirements: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: 'List of security requirements',
     },
     outOfScope: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: 'List of explicitly out-of-scope items',
     },
     assumptions: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: 'List of technical assumptions',
     },
   },
@@ -113,18 +113,6 @@ export async function generateSpecification(
     return generateFallbackSpecification(prompt, options);
   }
 
-  const genClient = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
-
-  let lastError: unknown = null;
-  let lastStatus = 0;
-
   const promptDirective = [
     'You are the Requirement Agent for smart contract systems. Create an implementation-ready software specification using only the project request below.',
     options?.projectName ? `Required Project Name: "${options.projectName}". Use this exact name for projectName.` : '',
@@ -132,72 +120,29 @@ export async function generateSpecification(
     'Never use the words Gemini, Gemini AI, AI, or Artificial Intelligence in any field or description. Do not assume it is a blockchain project unless the request says so. Mark unknowns as assumptions instead of inventing facts. Return valid JSON with exactly the required fields. Keep requirements specific to the request.\n\nProject request:\n' + prompt,
   ].filter(Boolean).join('\n');
 
-  // Try across candidate models with failover if high demand/503 occurs
-  for (const model of CANDIDATE_MODELS) {
-    const isThinkingSupported = model.startsWith('gemini-3');
+  try {
+    const rawJson = await callGemini({
+      prompt: promptDirective,
+      responseMimeType: 'application/json',
+      responseSchema: SPEC_SCHEMA as Record<string, unknown>,
+    });
 
-    for (let retry = 0; retry < 2; retry++) {
-      try {
-        const config: Record<string, unknown> = {
-          responseMimeType: 'application/json',
-          responseSchema: SPEC_SCHEMA,
-        };
-
-        if (isThinkingSupported) {
-          config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
+    if (rawJson) {
+      const spec = JSON.parse(rawJson);
+      if (validateSpecification(spec)) {
+        if (options?.projectName && options.projectName.trim()) {
+          spec.projectName = options.projectName.trim();
         }
-
-        const response = await genClient.models.generateContent({
-          model,
-          contents: [promptDirective],
-          config,
-        });
-
-        if (response && response.text) {
-          const spec = JSON.parse(response.text);
-          if (validateSpecification(spec)) {
-            if (options?.projectName && options.projectName.trim()) {
-              spec.projectName = options.projectName.trim();
-            }
-            if (options?.targetNetwork && options.targetNetwork.trim()) {
-              spec.targetNetworks = options.targetNetwork.trim();
-            }
-            return spec;
-          }
+        if (options?.targetNetwork && options.targetNetwork.trim()) {
+          spec.targetNetworks = options.targetNetwork.trim();
         }
-      } catch (error) {
-        lastError = error;
-        lastStatus = getErrorStatus(error);
-
-        // If it's a 403 (e.g. project access denied or unauthorized) or 401, stop retrying
-        if (lastStatus === 403 || lastStatus === 401) {
-          break;
-        }
-
-        // If it's not a transient 503/429/500, break to next model
-        if (lastStatus !== 503 && lastStatus !== 429 && lastStatus !== 500 && lastStatus !== 504) {
-          break;
-        }
-
-        // Wait brief jittered backoff before retry
-        await new Promise((resolve) => setTimeout(resolve, 600 + Math.random() * 400));
-      }
-
-      // If 403 permission denied or 401 unauthorized, key is blocked across all models
-      if (lastStatus === 403 || lastStatus === 401) {
-        break;
+        return spec;
       }
     }
-
-    if (lastStatus === 403 || lastStatus === 401) {
-      break;
-    }
+  } catch (error) {
+    console.warn('Gemini specification API call failed, generating fallback:', error);
   }
 
-  // Gracefully return high-fidelity structured fallback specification without failing the user
-  console.warn(
-    `Model service returned status ${lastStatus || 'unavailable'}. Generating structured specification for: "${prompt.slice(0, 80)}"`,
-  );
   return generateFallbackSpecification(prompt, options);
 }
 
