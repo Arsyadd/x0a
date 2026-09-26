@@ -63,6 +63,7 @@ app.post('/api/agent/chat', async (req, res) => {
   const currentFile = typeof req.body?.currentFile === 'string' ? req.body.currentFile : 'VaultCore.sol';
   const currentCode = typeof req.body?.currentCode === 'string' ? req.body.currentCode : '';
   const projectContext = req.body?.projectContext;
+  const activeAgent = typeof req.body?.activeAgent === 'string' ? req.body.activeAgent : undefined;
 
   if (!message) {
     res.status(400).json({ error: 'Message cannot be empty.' });
@@ -70,7 +71,7 @@ app.post('/api/agent/chat', async (req, res) => {
   }
 
   try {
-    const response = await handleAgentChat(message, currentFile, currentCode, projectContext);
+    const response = await handleAgentChat(message, currentFile, currentCode, projectContext, activeAgent);
     res.json(response);
   } catch (error) {
     console.error('Agent chat handler failed:', error);

@@ -167,7 +167,7 @@ export const workspaceMarkup = `
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M3.5 15.4V6.1a2.2 2.2 0 0 1 2.2-2.2h8.6a2.2 2.2 0 0 1 2.2 2.2v5.6a2.2 2.2 0 0 1-2.2 2.2H8L4.6 17Z"></path></svg>
 <span>Ask agent</span>
 </button>
-<div class="chip envChip envBadge" data-tip="Target Network (dikonfigurasi di spesifikasi — ubah via chat dengan agent)" data-tip-pos="bottom" id="wsEnvBadge"><span class="envDot"></span><span id="wsEnvLabel">Base Sepolia &middot; Testnet</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="width:11px;height:11px;margin-left:4px;opacity:0.65"><rect height="7" rx="1.5" width="10" x="3" y="7"></rect><path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7"></path></svg></div>
+<div class="chip envChip envBadge" data-tip="Target Network (locked from specification — update via chat with Agent)" data-tip-pos="bottom" id="wsEnvBadge"><span class="envDot"></span><span id="wsEnvLabel">Base Sepolia &middot; Testnet</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="width:11px;height:11px;margin-left:4px;opacity:0.65"><rect height="7" rx="1.5" width="10" x="3" y="7"></rect><path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7"></path></svg></div>
 <button class="wsIconBtn" data-tip="Focus mode" data-tip-pos="bottom" id="focusToggle">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 20 20"><path d="M7 3H4a1 1 0 0 0-1 1v3M13 3h3a1 1 0 0 1 1 1v3M7 17H4a1 1 0 0 1-1-1v-3M13 17h3a1 1 0 0 0 1-1v-3"></path></svg>
 </button>
@@ -1053,15 +1053,33 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 </div>
 <div hidden="" id="opsPanelChat">
 <div class="agentChat">
+<div class="agentChat__header" id="agentChatHeader" style="display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)">
+  <div style="display:flex;align-items:center;gap:0.45rem">
+    <span class="statusDot" style="width:7px;height:7px;background:#38bdf8;border-radius:50%;box-shadow:0 0 6px rgba(56,189,248,0.6)"></span>
+    <span id="activeAgentBadge" style="font-size:0.75rem;font-weight:600;color:#f1f5f9">Contract Builder Agent</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.35rem">
+    <label for="agentRoleSelect" style="font-size:0.68rem;color:rgba(255,255,255,0.5)">Role:</label>
+    <select id="agentRoleSelect" style="font-size:0.7rem;padding:0.2rem 0.45rem;background:#18181b;border:1px solid rgba(255,255,255,0.12);color:#e4e4e7;border-radius:4px;outline:none;cursor:pointer">
+      <option value="Contract Builder Agent">Contract Builder Agent</option>
+      <option value="Security Auditor Agent">Security Auditor Agent</option>
+      <option value="Testing &amp; Verification Agent">Testing &amp; Verification Agent</option>
+      <option value="Deployment Agent">Deployment Agent</option>
+      <option value="Requirement Agent">Requirement Agent</option>
+      <option value="Auto-Route">Auto-Route (Smart Delegation)</option>
+    </select>
+  </div>
+</div>
 <div class="msgList agentChat__log" id="agentLog"></div>
 <div class="agentChat__suggestions" id="agentSuggestions">
-<button class="qrChip" data-prompt="Switch to Mainnet" type="button">Switch to Mainnet</button>
-<button class="qrChip" data-prompt="Add a withdrawal fee" type="button">Add a withdrawal fee</button>
-<button class="qrChip" data-prompt="Make it pausable" type="button">Make it pausable</button>
-<button class="qrChip" data-prompt="Explain claimRewards()" type="button">Explain claimRewards()</button>
+<button class="qrChip" data-prompt="Add a withdrawal fee to VaultCore.sol" type="button">Add withdrawal fee</button>
+<button class="qrChip" data-prompt="Make VaultCore.sol pausable with guardian role" type="button">Make pausable</button>
+<button class="qrChip" data-prompt="Conduct full security audit on VaultCore.sol" type="button">Run security audit</button>
+<button class="qrChip" data-prompt="Write Foundry invariant tests for share conversion" type="button">Generate tests</button>
+<button class="qrChip" data-prompt="Switch network environment to Base Mainnet" type="button">Switch to Mainnet</button>
 </div>
 <form class="agentChat__composer" id="agentForm">
-<textarea id="agentInput" placeholder="Ask x0a to change or add something&hellip;" rows="1"></textarea>
+<textarea id="agentInput" placeholder="Message active agent (or ask anything for automatic delegation)&hellip;" rows="1"></textarea>
 <button aria-label="Send" class="agentChat__send" id="agentSend" type="submit">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 20 20"><path d="M3 10h14M11 4l6 6-6 6"></path></svg>
 </button>

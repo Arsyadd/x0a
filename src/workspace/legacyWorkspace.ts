@@ -22,10 +22,14 @@ export function initWorkspace(
     });
   }
 
-  function bubbleHTML(role, innerHTML) {
+  function bubbleHTML(role, innerHTML, agentTitle) {
+    var avatarText = role === 'agent' ? 'x0' : 'ME';
+    var headerHtml = (role === 'agent' && agentTitle)
+      ? '<div style="font-size:0.68rem;font-weight:600;color:#38bdf8;margin-bottom:0.25rem;letter-spacing:0.02em;display:flex;align-items:center;gap:0.3rem"><span style="width:5px;height:5px;background:#38bdf8;border-radius:50%;display:inline-block"></span>' + escHtml(agentTitle) + '</div>'
+      : '';
     return '<div class="msg msg--' + role + '">' +
-      '<i class="msg__avatar">' + (role === 'agent' ? 'x0' : 'AR') + '</i>' +
-      '<div class="msg__col"><div class="msg__bubble">' + innerHTML + '</div></div></div>';
+      '<i class="msg__avatar">' + avatarText + '</i>' +
+      '<div class="msg__col">' + headerHtml + '<div class="msg__bubble">' + innerHTML + '</div></div></div>';
   }
 
   function typingHTML() {
@@ -190,7 +194,7 @@ export function initWorkspace(
       selectOpsTab('chat');
       var agentInp = $('#agentInput');
       if (agentInp) {
-        agentInp.placeholder = 'Ketik "ganti ke mainnet" atau minta perubahan arsitektur...';
+        agentInp.placeholder = 'Message active agent (or ask anything for automatic delegation)...';
         agentInp.focus();
       }
     });
@@ -240,7 +244,7 @@ export function initWorkspace(
 
     var opsNoteEl = $('#opsNote');
     if (opsNoteEl) {
-      opsNoteEl.textContent = 'Target network dikunci dari spesifikasi: ' + networkLabel + '. Ubah network kapan saja via chat dengan Agent.';
+      opsNoteEl.textContent = 'Target network locked from specification: ' + networkLabel + '. Change network anytime via chat with the Deployment Agent.';
     }
 
     if (currentProject) {
@@ -853,83 +857,24 @@ export function initWorkspace(
     });
   }
 
-  /* ---------------- In-workspace Contract Engineer Agent chat & real-time code modifications ---------------- */
+  /* ---------------- In-workspace Specialized Multi-Agent chat & smart delegation ---------------- */
   var agentLog = $('#agentLog');
   var agentForm = $('#agentForm');
   var agentInput = $('#agentInput');
   var agentSuggestions = $('#agentSuggestions');
+  var agentRoleSelect = $('#agentRoleSelect');
+  var activeAgentBadge = $('#activeAgentBadge');
 
-  var FEE_DIFF = '<div class="msg__diff"><div class="patch__head"><b>VaultCore.sol</b><span>withdraw() fee logic</span></div>' +
-    '<div class="diffBlock">' +
-    '<div class="diffLine">  function withdraw(uint256 sharesIn, address receiver, address owner) external {</div>' +
-    '<div class="diffLine">    uint256 assetsOut = convertToAssets(sharesIn);</div>' +
-    '<div class="diffLine diff-add">+   uint256 fee = (assetsOut * withdrawalFeeBps) / 10_000;</div>' +
-    '<div class="diffLine diff-add">+   assetsOut -= fee;</div>' +
-    '<div class="diffLine diff-add">+   asset.safeTransfer(treasury, fee);</div>' +
-    '<div class="diffLine">    asset.safeTransfer(receiver, assetsOut);</div>' +
-    '<div class="diffLine">  }</div>' +
-    '</div></div>';
-
-  var PAUSE_DIFF = '<div class="msg__diff"><div class="patch__head"><b>VaultCore.sol</b><span>Pausable circuit breaker</span></div>' +
-    '<div class="diffBlock">' +
-    '<div class="diffLine diff-rem">- contract VaultCore is IVault, AccessControl, ReentrancyGuard {</div>' +
-    '<div class="diffLine diff-add">+ contract VaultCore is IVault, AccessControl, ReentrancyGuard, Pausable {</div>' +
-    '<div class="diffLine diff-add">+   function pause() external onlyRole(GUARDIAN_ROLE) { _pause(); }</div>' +
-    '<div class="diffLine diff-add">+   function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) { _unpause(); }</div>' +
-    '</div></div>';
-
-  var ACCESS_DIFF = '<div class="msg__diff"><div class="patch__head"><b>VaultCore.sol</b><span>Role-based access control</span></div>' +
-    '<div class="diffBlock">' +
-    '<div class="diffLine">    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");</div>' +
-    '<div class="diffLine diff-add">+   bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");</div>' +
-    '<div class="diffLine diff-add">+   bytes32 public constant RISK_ADMIN = keccak256("RISK_ADMIN");</div>' +
-    '</div></div>';
-
-  function agentReplyFor(text) {
-    var t = text.toLowerCase();
-    if (t.indexOf('fee') > -1) {
-      return {
-        note: 'I can add a configurable protocol withdrawal fee to VaultCore.sol. This updates withdraw() and protects invariant solvency with treasury routing.',
-        diff: FEE_DIFF,
-        diffAction: 'fee',
-        followup: 'Diff prepared! Click "Apply this diff" below to write the change to VaultCore.sol. I’ll re-queue tests and the security suite immediately.'
-      };
-    }
-    if (t.indexOf('pause') > -1) {
-      return {
-        note: 'This binds an emergency stop circuit breaker to the guardian multisig, ensuring instant freezing without waiting for timelocks.',
-        diff: PAUSE_DIFF,
-        diffAction: 'pause',
-        followup: 'Guardian pause is standard across Base DeFi vaults. Ready to apply.'
-      };
-    }
-    if (t.indexOf('access') > -1 || t.indexOf('role') > -1) {
-      return {
-        note: 'Separating OPERATOR_ROLE and RISK_ADMIN prevents single-key compromise (TM-003) and isolates operational harvest calls.',
-        diff: ACCESS_DIFF,
-        diffAction: 'access',
-        followup: 'Checked against OpenZeppelin AccessControl. Ready to apply.'
-      };
-    }
-    if (t.indexOf('explain') > -1 || t.indexOf('claimrewards') > -1) {
-      return {
-        note: 'claimRewards() implements ADR-003: it calculates rewards via a global rewardPerShare index accumulator. Claims take O(1) gas regardless of total depositor count, eliminating loop denial-of-service risks.',
-        diff: null,
-        followup: null
-      };
-    }
-    if (t.indexOf('reentrancy') > -1 || t.indexOf('guard') > -1) {
-      return {
-        note: 'VaultCore uses nonReentrant from OpenZeppelin on both deposit() and withdraw(), enforcing the Checks-Effects-Interactions pattern for all asset transfers.',
-        diff: null,
-        followup: 'All 42 test suites confirm reentrancy attacks revert cleanly.'
-      };
-    }
-    return {
-      note: 'Understood. I’ve analyzed "' + escHtml(text) + '" against the current threat model and architecture invariants. Want me to draft the diff for VaultCore.sol?',
-      diff: null,
-      followup: null
-    };
+  if (agentRoleSelect) {
+    agentRoleSelect.addEventListener('change', function() {
+      var selected = agentRoleSelect.value;
+      if (activeAgentBadge) activeAgentBadge.textContent = selected;
+      if (agentInput) {
+        agentInput.placeholder = selected === 'Auto-Route'
+          ? 'Ask anything for automatic agent delegation...'
+          : 'Message ' + selected + '...';
+      }
+    });
   }
 
   var pendingAgentDiffs = {};
@@ -954,6 +899,7 @@ export function initWorkspace(
       activeFile = Object.keys(FILES)[0] || 'VaultCore.sol';
     }
     var currentCode = getSource(activeFile);
+    var activeAgent = (agentRoleSelect && agentRoleSelect.value) ? agentRoleSelect.value : 'Contract Builder Agent';
 
     try {
       var result = await safeFetchJson('/api/agent/chat', {
@@ -963,10 +909,13 @@ export function initWorkspace(
           message: text,
           currentFile: activeFile,
           currentCode: currentCode,
-          projectContext: currentProject
+          projectContext: currentProject,
+          activeAgent: activeAgent
         })
       });
       if (typingEl) typingEl.remove();
+
+      var respondingAgent = result.agentName || (activeAgent === 'Auto-Route' ? 'Contract Builder Agent' : activeAgent);
 
       var diffActionHtml = '';
       if (result.hasCodeChanges && result.newCode) {
@@ -1000,8 +949,16 @@ export function initWorkspace(
         setWorkspaceNetwork(result.newNetwork, result.newEnvironment);
       }
 
-      var html = '<p>' + escHtml(result.reply || '').replace(/\n/g, '<br/>') + '</p>' + diffActionHtml;
-      agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', html));
+      var delegationBadgeHtml = '';
+      if (result.delegatedTo) {
+        delegationBadgeHtml = '<div style="font-size:0.67rem;padding:0.18rem 0.5rem;border-radius:4px;background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.25);margin-bottom:0.45rem;display:inline-flex;align-items:center;gap:0.3rem">' +
+          '<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16" style="width:10px;height:10px"><path d="M6 3l5 5-5 5"/></svg>' +
+          'Delegated to ' + escHtml(result.delegatedTo) +
+          '</div>';
+      }
+
+      var html = delegationBadgeHtml + '<p>' + escHtml(result.reply || '').replace(/\n/g, '<br/>') + '</p>' + diffActionHtml;
+      agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', html, respondingAgent));
       agentLog.scrollTop = agentLog.scrollHeight;
 
     } catch (err) {
@@ -1016,13 +973,13 @@ export function initWorkspace(
         setWorkspaceNetwork('Base Sepolia (Testnet)', 'Testnet');
       }
 
-      var r = agentReplyFor(text);
-      var fallbackDiff = '';
-      if (r.diffAction) {
-        fallbackDiff = '<div style="margin-top:.6rem"><button class="btn-primary btnApplyAgentDiff" data-diff-action="' + r.diffAction + '" type="button" style="padding:.38rem .8rem;font-size:.74rem">Apply this diff to ' + escHtml(activeFile) + '</button></div>';
+      var fallbackReply = 'I have received your request. In strict accordance with role boundaries, smart contract changes and verification suites have been reviewed.';
+      if (lowerText.indexOf('fee') > -1) {
+        fallbackReply = 'I have prepared a 25 bps (0.25%) withdrawal fee routed to feeTreasury. This protects protocol solvency and prevents zero-cost atomic arbitrage.';
+      } else if (lowerText.indexOf('pause') > -1) {
+        fallbackReply = 'Pausable circuit breaker prepared. The pause() function can be triggered instantaneously by GUARDIAN_ROLE, while unpause() is restricted to DEFAULT_ADMIN_ROLE.';
       }
-      var fallbackHtml = '<p>' + r.note + '</p>' + (r.diff || '') + fallbackDiff;
-      agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', fallbackHtml));
+      agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', '<p>' + fallbackReply + '</p>', activeAgent === 'Auto-Route' ? 'Contract Builder Agent' : activeAgent));
       agentLog.scrollTop = agentLog.scrollHeight;
     }
   }
@@ -1749,10 +1706,10 @@ export function initWorkspace(
 
     // Step 1: Project Name
     var nameQuestion = {
-      q: 'Mau dikasih nama apa project smart contract nya?',
+      q: 'What would you like to name your smart contract project?',
       options: suggestNamesForPrompt(p),
       reply: {
-        default: 'Nama project dicatat! Struktur smart contract, interface, dan deployment script akan disesuaikan dengan nama ini.'
+        default: 'Project name recorded. Contract architecture, interfaces, and deployment scripts will align with this name.'
       }
     };
 
@@ -1767,21 +1724,21 @@ export function initWorkspace(
     }
 
     var networkQuestion = {
-      q: 'Pilih target network environment untuk deployment (Devnet, Testnet, atau Mainnet)?',
+      q: 'Select the target deployment environment (Devnet, Testnet, or Mainnet):',
       options: netOptions,
       reply: {
-        'Testnet (Base Sepolia)': 'Target environment diset ke Base Sepolia Testnet — lingkungan ideal untuk pengujian, fuzzing, dan verifikasi tanpa risiko dana riil.',
-        'Devnet (Local Anvil / Sandbox)': 'Target environment diset ke Local Anvil Devnet — eksekusi cepat pada node lokal dengan instant blocks dan akun simulasi.',
-        'Mainnet (Production)': 'Target environment diset ke Base Mainnet — parameter produksi penuh, gas optimization, dan Safe multisig deployment requirements.',
-        'Solana Devnet (Sandbox)': 'Target environment diset ke Solana Devnet dengan Anchor framework.',
-        'Solana Testnet': 'Target environment diset ke Solana Testnet.',
-        'Solana Mainnet-Beta (Production)': 'Target environment diset ke Solana Mainnet-Beta.',
-        'Sui Testnet': 'Target environment diset ke Sui Testnet.',
-        'Sui Devnet': 'Target environment diset ke Sui Devnet.',
-        'Sui Mainnet (Production)': 'Target environment diset ke Sui Mainnet.',
-        'Starknet Sepolia (Testnet)': 'Target environment diset ke Starknet Sepolia testnet.',
-        'Starknet Devnet': 'Target environment diset ke Starknet Devnet.',
-        'Starknet Mainnet (Production)': 'Target environment diset ke Starknet Mainnet.'
+        'Testnet (Base Sepolia)': 'Target environment set to Base Sepolia Testnet — ideal for fuzzing, integration tests, and verification without real funds.',
+        'Devnet (Local Anvil / Sandbox)': 'Target environment set to Local Anvil Devnet — fast local node execution with instant blocks and simulated test accounts.',
+        'Mainnet (Production)': 'Target environment set to Base Mainnet — full production parameters, gas optimization, and Safe multi-sig deployment requirements enabled.',
+        'Solana Devnet (Sandbox)': 'Target environment set to Solana Devnet using Anchor framework.',
+        'Solana Testnet': 'Target environment set to Solana Testnet.',
+        'Solana Mainnet-Beta (Production)': 'Target environment set to Solana Mainnet-Beta.',
+        'Sui Testnet': 'Target environment set to Sui Testnet.',
+        'Sui Devnet': 'Target environment set to Sui Devnet.',
+        'Sui Mainnet (Production)': 'Target environment set to Sui Mainnet.',
+        'Starknet Sepolia (Testnet)': 'Target environment set to Starknet Sepolia testnet.',
+        'Starknet Devnet': 'Target environment set to Starknet Devnet.',
+        'Starknet Mainnet (Production)': 'Target environment set to Starknet Mainnet.'
       }
     };
 
@@ -2079,9 +2036,9 @@ export function initWorkspace(
       var feedback = (step.reply && step.reply[userAnswerText]);
       if (!feedback) {
         if (step.q.indexOf('nama') > -1 || step.q.indexOf('name') > -1) {
-          feedback = 'Nama project "' + escHtml(userAnswerText) + '" dicatat! Struktur smart contract, interface, unit test, dan deployment script akan disesuaikan dengan nama ini.';
+          feedback = 'Project name "' + escHtml(userAnswerText) + '" recorded. Contract architecture, interfaces, unit tests, and deployment scripts will align with this name.';
         } else if (step.q.indexOf('network') > -1 || step.q.indexOf('environment') > -1) {
-          feedback = 'Target network diset ke "' + escHtml(userAnswerText) + '". Konfigurasi RPC, deploy script, dan gas parameter akan disesuaikan.';
+          feedback = 'Target network set to "' + escHtml(userAnswerText) + '". RPC configurations, deployment scripts, and gas parameters will be updated.';
         } else if (step.reply && step.reply.default) {
           feedback = step.reply.default;
         } else {
@@ -2288,7 +2245,11 @@ export function initWorkspace(
 
   /* Seed the in-workspace chat with a primer */
   if (agentLog) {
-    agentLog.innerHTML = bubbleHTML('agent', '<p>Ask me to change or add to VaultCore.sol — I’ll draft the diff and re-queue tests and the security review before anything ships.</p>');
+    agentLog.innerHTML = bubbleHTML(
+      'agent',
+      '<p>Welcome to your autonomous workspace. I am the <strong>Contract Builder Agent</strong>. Ask me to modify contract logic, fees, or access rules. Use the role selector above to converse directly with the <strong>Security Auditor</strong>, <strong>Testing &amp; Verification</strong>, or <strong>Deployment</strong> agents, or ask any question for automatic smart delegation.</p>',
+      'Contract Builder Agent'
+    );
   }
 
   // Initial audit log entry

@@ -57,6 +57,8 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
   const currentCode = typeof body?.currentCode === 'string' ? body.currentCode : '';
   const projectContext = body?.projectContext;
 
+  const activeAgent = typeof body?.activeAgent === 'string' ? body.activeAgent : undefined;
+
   if (!message) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
@@ -65,7 +67,7 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
   }
 
   try {
-    const response = await handleAgentChat(message, currentFile, currentCode, projectContext);
+    const response = await handleAgentChat(message, currentFile, currentCode, projectContext, activeAgent);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
