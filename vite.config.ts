@@ -9,6 +9,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    // The Dynamic SDK relies on Node globals (process, Buffer) that Vite does
+    // not provide on the client by default. See:
+    // https://www.dynamic.xyz/docs/get-started/troubleshooting/react/vitejs-polyfills-necessary-for-dynamic-sdk
+    define: {
+      'process.env': {},
+      global: 'globalThis',
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

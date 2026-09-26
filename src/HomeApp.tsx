@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { DynamicWidget } from '@dynamic-labs/sdk-react-core';
 import './app.css';
 
 interface HomeAppProps {
@@ -378,6 +379,11 @@ export default function HomeApp({
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               </button>
+
+              {/* Dynamic's built-in auth UI. Signed out it renders a "Connect
+                  Wallet" button; signed in it renders the account chip. Either
+                  way it opens the native Dynamic wallet/auth modal. */}
+              <DynamicWidget />
 
               <div className={`pop pop--notif ${notifPopOpen ? 'is-open' : ''}`} role="dialog" aria-label="Notifications">
                 <div className="notif__head">
