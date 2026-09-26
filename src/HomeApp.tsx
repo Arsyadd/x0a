@@ -3,9 +3,14 @@ import './app.css';
 
 interface HomeAppProps {
   onBackToLanding: () => void;
+  onOpenWorkspace: (prompt: string) => void;
 }
 
-export default function HomeApp({ onBackToLanding }: HomeAppProps) {
+export default function HomeApp({
+  onBackToLanding,
+  onOpenWorkspace,
+}: HomeAppProps) {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProject, setActiveProject] = useState('Yield Vault');
@@ -593,10 +598,22 @@ export default function HomeApp({ onBackToLanding }: HomeAppProps) {
                     disabled={promptText.trim().length === 0}
                     aria-label="Start project"
                     onClick={() => {
-                      alert(`Project initialized with prompt: "${promptText}". Proceeding to specification & threat model generation!`);
+                      const prompt = promptText.trim();
+
+                      if (!prompt) return;
+
+                      onOpenWorkspace(prompt);
                     }}
                   >
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
                       <path d="M4 10h12M11 5l5 5-5 5" />
                     </svg>
                   </button>
