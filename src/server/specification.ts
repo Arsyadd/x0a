@@ -52,10 +52,20 @@ export async function generateSpecification(prompt: string) {
     } catch (error) {
       const status = getErrorStatus(error);
       if ((status !== 429 && status !== 503) || attempt === 1) {
+        console.error('Gemini generation request failed.', {
+          status: status || 'unknown',
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        });
+        const message =
+          status === 401 || status === 403 || status === 400
+            ? 'Gemini rejected the request. Check the Preview API key and model access.'
+            : status === 404
+              ? 'The configured Gemini model is unavailable. Check the model name and API access.'
+              : status === 429 || status === 503
+                ? 'Gemini is temporarily busy. Please retry your prompt in a moment.'
+                : 'Could not generate a specification. Please try again.';
         throw new SpecificationGenerationError(
-          status === 429 || status === 503
-            ? 'Gemini is temporarily busy. Please retry your prompt in a moment.'
-            : 'Could not generate a specification. Please try again.',
+          message,
           status === 429 || status === 503 ? status : 502,
         );
       }
@@ -86,6 +96,7 @@ export async function generateSpecification(prompt: string) {
     }
     return specification;
   } catch {
+    console.error('Gemini returned invalid specification JSON.');
     throw new SpecificationGenerationError(
       'Could not generate a specification. Please try again.',
       502,
