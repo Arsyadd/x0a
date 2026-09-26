@@ -5,7 +5,7 @@ interface ExtendedRequest extends IncomingMessage {
   body?: any;
 }
 
-function parseRequestBody(req: ExtendedRequest): any {
+async function parseRequestBody(req: ExtendedRequest): Promise<any> {
   if (req.body && typeof req.body === 'object') {
     return req.body;
   }
@@ -16,7 +16,20 @@ function parseRequestBody(req: ExtendedRequest): any {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on('error', () => resolve({}));
+  });
 }
 
 export default async function handler(req: ExtendedRequest, res: ServerResponse) {
@@ -38,7 +51,7 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
     return;
   }
 
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const files = Array.isArray(body?.files) ? body.files : [];
   const specContext = body?.specification;
 

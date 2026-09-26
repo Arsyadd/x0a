@@ -718,7 +718,7 @@ anvil = "http://127.0.0.1:8545"
 }
 
 // src/api/generate-source.ts
-function parseRequestBody(req) {
+async function parseRequestBody(req) {
   if (req.body && typeof req.body === "object") {
     return req.body;
   }
@@ -729,7 +729,20 @@ function parseRequestBody(req) {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+    req.on("end", () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on("error", () => resolve({}));
+  });
 }
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -747,7 +760,7 @@ async function handler(req, res) {
     res.end(JSON.stringify({ error: "Method not allowed." }));
     return;
   }
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const spec = body?.specification;
   if (!spec || typeof spec !== "object" || !spec.projectName) {
     res.statusCode = 400;

@@ -5,7 +5,7 @@ interface ExtendedRequest extends IncomingMessage {
   body?: any;
 }
 
-function parseRequestBody(req: ExtendedRequest): any {
+async function parseRequestBody(req: ExtendedRequest): Promise<any> {
   if (req.body && typeof req.body === 'object') {
     return req.body;
   }
@@ -16,7 +16,20 @@ function parseRequestBody(req: ExtendedRequest): any {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on('error', () => resolve({}));
+  });
 }
 
 export default async function handler(req: ExtendedRequest, res: ServerResponse) {
@@ -38,7 +51,7 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
     return;
   }
 
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
   const currentFile = typeof body?.currentFile === 'string' ? body.currentFile : 'VaultCore.sol';
   const currentCode = typeof body?.currentCode === 'string' ? body.currentCode : '';
@@ -58,9 +71,9 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
     res.end(JSON.stringify(response));
   } catch (error) {
     console.error('Agent chat handler failed in Vercel function:', error);
-    const errMessage = error instanceof Error ? error.message : 'Agent encountered an error while processing your request.';
+    const msg = error instanceof Error ? error.message : 'Could not process request.';
     res.statusCode = 502;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: errMessage }));
+    res.end(JSON.stringify({ error: msg }));
   }
 }

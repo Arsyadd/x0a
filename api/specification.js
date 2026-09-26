@@ -344,7 +344,7 @@ function generateFallbackSpecification(prompt, options) {
 }
 
 // src/api/specification.ts
-function parseRequestBody(req) {
+async function parseRequestBody(req) {
   if (req.body && typeof req.body === "object") {
     return req.body;
   }
@@ -355,7 +355,20 @@ function parseRequestBody(req) {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+    req.on("end", () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on("error", () => resolve({}));
+  });
 }
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -373,7 +386,7 @@ async function handler(req, res) {
     res.end(JSON.stringify({ error: "Method not allowed." }));
     return;
   }
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
   const projectName = typeof body?.projectName === "string" ? body.projectName.trim() : void 0;
   const targetNetwork = typeof body?.targetNetwork === "string" ? body.targetNetwork.trim() : void 0;

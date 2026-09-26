@@ -279,7 +279,7 @@ function generateFallbackChatResponse(message, currentFile, currentCode) {
 }
 
 // src/api/chat.ts
-function parseRequestBody(req) {
+async function parseRequestBody(req) {
   if (req.body && typeof req.body === "object") {
     return req.body;
   }
@@ -290,7 +290,20 @@ function parseRequestBody(req) {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+    req.on("end", () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on("error", () => resolve({}));
+  });
 }
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -308,7 +321,7 @@ async function handler(req, res) {
     res.end(JSON.stringify({ error: "Method not allowed." }));
     return;
   }
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const message = typeof body?.message === "string" ? body.message.trim() : "";
   const currentFile = typeof body?.currentFile === "string" ? body.currentFile : "VaultCore.sol";
   const currentCode = typeof body?.currentCode === "string" ? body.currentCode : "";
@@ -326,10 +339,10 @@ async function handler(req, res) {
     res.end(JSON.stringify(response));
   } catch (error) {
     console.error("Agent chat handler failed in Vercel function:", error);
-    const errMessage = error instanceof Error ? error.message : "Agent encountered an error while processing your request.";
+    const msg = error instanceof Error ? error.message : "Could not process request.";
     res.statusCode = 502;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: errMessage }));
+    res.end(JSON.stringify({ error: msg }));
   }
 }
 export {

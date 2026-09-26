@@ -5,7 +5,7 @@ interface ExtendedRequest extends IncomingMessage {
   body?: any;
 }
 
-function parseRequestBody(req: ExtendedRequest): any {
+async function parseRequestBody(req: ExtendedRequest): Promise<any> {
   if (req.body && typeof req.body === 'object') {
     return req.body;
   }
@@ -16,7 +16,20 @@ function parseRequestBody(req: ExtendedRequest): any {
       return {};
     }
   }
-  return {};
+  return new Promise((resolve) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    });
+    req.on('error', () => resolve({}));
+  });
 }
 
 export default async function handler(req: ExtendedRequest, res: ServerResponse) {
@@ -38,7 +51,7 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
     return;
   }
 
-  const body = parseRequestBody(req);
+  const body = await parseRequestBody(req);
   const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
   const projectName = typeof body?.projectName === 'string' ? body.projectName.trim() : undefined;
   const targetNetwork = typeof body?.targetNetwork === 'string' ? body.targetNetwork.trim() : undefined;
