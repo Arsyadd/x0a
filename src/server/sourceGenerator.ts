@@ -120,7 +120,7 @@ export async function generateSourceCode(
     return generateFallbackSourceBundle(spec);
   }
 
-  const ai = new GoogleGenAI({
+  const genClient = new GoogleGenAI({
     apiKey,
     httpOptions: {
       headers: {
@@ -129,9 +129,13 @@ export async function generateSourceCode(
     },
   });
 
-  const promptText = `You are the lead Smart Contract Coder Agent on x0a.
+  const promptText = `You are the lead Contract Builder Agent on x0a.
 Your job is to generate the complete, production-ready, genuine smart contract source files from the locked specification below.
 Do NOT output mock placeholders or "TODO" comments. Every file must contain complete, functional code with proper Solidity syntax (^0.8.26), OpenZeppelin-compatible patterns, custom errors, events, and reentrancy/access guards matching the specification requirements.
+
+CRITICAL RULES:
+1. DO NOT USE ANY EMOJIS ANYWHERE.
+2. NEVER use the words "Gemini", "Gemini AI", "AI", or "Artificial Intelligence" in any code, comment, title, description, or ADR. Always use specialized Agent names where applicable (e.g. Contract Builder Agent, Security Auditor Agent).
 
 Specification:
 - Project Name: ${spec.projectName}
@@ -164,6 +168,7 @@ Also generate 3-5 Threat Model entries and 3-4 ADRs directly reflecting these co
   for (const model of CANDIDATE_MODELS) {
     const isThinkingSupported = model.startsWith('gemini-3');
 
+    let modelStatus = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const config: Record<string, unknown> = {
@@ -175,7 +180,7 @@ Also generate 3-5 Threat Model entries and 3-4 ADRs directly reflecting these co
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
 
-        const response = await ai.models.generateContent({
+        const response = await genClient.models.generateContent({
           model,
           contents: [promptText],
           config,
@@ -189,11 +194,18 @@ Also generate 3-5 Threat Model entries and 3-4 ADRs directly reflecting these co
         }
       } catch (error) {
         const status = getErrorStatus(error);
+        modelStatus = status;
+        if (status === 403 || status === 401) {
+          break;
+        }
         if (status !== 503 && status !== 429 && status !== 500 && status !== 504) {
           break;
         }
         await new Promise((r) => setTimeout(r, 800 + Math.random() * 400));
       }
+    }
+    if (modelStatus === 403 || modelStatus === 401) {
+      break;
     }
   }
 
@@ -570,6 +582,83 @@ contract Deploy${cName} is Script {
 }
 `;
 
+  const testSuite = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
+
+import { Test } from "forge-std/Test.sol";
+import { ${cName} } from "../${cName}.sol";
+import { ShareToken } from "../ShareToken.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract MockUnderlyingToken is ERC20 {
+    constructor() ERC20("Mock USDC", "USDC") {}
+    function mint(address to, uint256 amount) external { _mint(to, amount); }
+}
+
+contract ${cName}Test is Test {
+    ${cName} public protocol;
+    MockUnderlyingToken public asset;
+    address public admin = address(0xAA);
+    address public guardian = address(0xBB);
+    address public alice = address(0x11);
+    address public bob = address(0x22);
+
+    function setUp() public {
+        vm.startPrank(admin);
+        asset = new MockUnderlyingToken();
+        protocol = new ${cName}(
+            IERC20(address(asset)),
+            "${spec.projectName} Shares",
+            "x${cName.slice(0, 4).toUpperCase()}",
+            admin,
+            guardian
+        );
+        vm.stopPrank();
+
+        asset.mint(alice, 50_000e18);
+        asset.mint(bob, 50_000e18);
+    }
+
+    function test_deposit_and_mint_shares() public {
+        vm.startPrank(alice);
+        asset.approve(address(protocol), 10_000e18);
+        uint256 sharesOut = protocol.deposit(10_000e18, alice);
+        assertGt(sharesOut, 0, "Shares should be minted");
+        assertEq(protocol.totalAssets(), 10_000e18, "Total assets should match deposit");
+        vm.stopPrank();
+    }
+
+    function test_withdraw_shares() public {
+        vm.startPrank(alice);
+        asset.approve(address(protocol), 10_000e18);
+        uint256 sharesOut = protocol.deposit(10_000e18, alice);
+
+        uint256 assetsOut = protocol.withdraw(sharesOut, alice, alice);
+        assertGt(assetsOut, 0, "Assets returned should be positive");
+        assertEq(protocol.totalAssets(), 0, "Vault assets should be 0");
+        vm.stopPrank();
+    }
+
+    function test_pause_circuit_breaker() public {
+        vm.prank(guardian);
+        protocol.pause();
+
+        vm.startPrank(bob);
+        asset.approve(address(protocol), 5_000e18);
+        vm.expectRevert();
+        protocol.deposit(5_000e18, bob);
+        vm.stopPrank();
+    }
+
+    function test_unauthorized_pause_reverts() public {
+        vm.prank(alice);
+        vm.expectRevert();
+        protocol.pause();
+    }
+}
+`;
+
   const foundryToml = `[profile.default]
 src = "contracts"
 out = "out"
@@ -582,6 +671,7 @@ evm_version = "cancun"
 [rpc_endpoints]
 base_sepolia = "\${BASE_SEPOLIA_RPC}"
 mainnet = "\${MAINNET_RPC}"
+anvil = "http://127.0.0.1:8545"
 `;
 
   const files: GeneratedFile[] = [
@@ -615,11 +705,18 @@ mainnet = "\${MAINNET_RPC}"
       description: `External contract interface for I${cName}`,
     },
     {
-      name: 'script/Deploy.s.sol',
-      path: [cleanSlug, 'contracts', 'script', 'Deploy.s.sol'],
+      name: `script/Deploy${cName}.s.sol`,
+      path: [cleanSlug, 'contracts', 'script', `Deploy${cName}.s.sol`],
       language: 'solidity',
       code: deployScript,
-      description: 'Foundry deployment and verification script',
+      description: `Foundry deployment and verification script configured for ${spec.targetNetworks}`,
+    },
+    {
+      name: `test/${cName}.t.sol`,
+      path: [cleanSlug, 'contracts', 'test', `${cName}.t.sol`],
+      language: 'solidity',
+      code: testSuite,
+      description: `Foundry test suite verifying invariant solvency for ${cName}`,
     },
     {
       name: 'foundry.toml',

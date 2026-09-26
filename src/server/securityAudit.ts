@@ -65,7 +65,7 @@ export async function auditCode(
     return generateFallbackAudit(files);
   }
 
-  const ai = new GoogleGenAI({
+  const genClient = new GoogleGenAI({
     apiKey,
     httpOptions: {
       headers: {
@@ -74,10 +74,12 @@ export async function auditCode(
     },
   });
 
-  const prompt = `You are the lead Smart Contract Security Auditor Agent on x0a.
+  const prompt = `You are the lead Security Auditor Agent on x0a.
 Conduct an adversarial security review and static analysis on the following smart contracts:
 
-CRITICAL RULE: DO NOT USE ANY EMOJIS ANYWHERE IN YOUR OUTPUT.
+CRITICAL RULES:
+1. DO NOT USE ANY EMOJIS ANYWHERE IN YOUR OUTPUT.
+2. NEVER use the words "Gemini", "Gemini AI", "AI", or "Artificial Intelligence" in any finding, description, remediation, or output. Always refer to yourself as the Security Auditor Agent.
 
 ${files.map((f) => `### File: ${f.name}\n\`\`\`solidity\n${f.code}\n\`\`\``).join('\n\n')}
 
@@ -97,6 +99,7 @@ Output structured findings with realistic line numbers, severity, and remediatio
   for (const model of CANDIDATE_MODELS) {
     const isThinkingSupported = model.startsWith('gemini-3');
 
+    let modelStatus = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const config: Record<string, unknown> = {
@@ -108,7 +111,7 @@ Output structured findings with realistic line numbers, severity, and remediatio
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
 
-        const response = await ai.models.generateContent({
+        const response = await genClient.models.generateContent({
           model,
           contents: [prompt],
           config,
@@ -135,8 +138,16 @@ Output structured findings with realistic line numbers, severity, and remediatio
           }
         }
       } catch (error) {
+        const status = (error && typeof error === 'object' && 'status' in error) ? Number((error as any).status) : 0;
+        modelStatus = status;
+        if (status === 403 || status === 401) {
+          break;
+        }
         await new Promise((r) => setTimeout(r, 600));
       }
+    }
+    if (modelStatus === 403 || modelStatus === 401) {
+      break;
     }
   }
 

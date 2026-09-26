@@ -471,11 +471,11 @@
 .x0a-workspace-root .opsKV dt{font-size:.72rem;color:var(--muted);flex:none}
 .x0a-workspace-root .opsKV dd{font-size:.76rem;font-weight:560;text-align:right}
 
-.x0a-workspace-root .envRow{display:flex;gap:.3rem;margin:.75rem 0 .5rem;overflow-x:auto;scrollbar-width:none}
-.x0a-workspace-root .envRow::-webkit-scrollbar{display:none}
-.x0a-workspace-root .envRow button{flex:none;padding:.32rem .62rem;border-radius:999px;font-size:.68rem;font-weight:500;color:var(--muted);border:1px solid var(--line);transition:background .2s,color .2s}
-.x0a-workspace-root .envRow button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.x0a-workspace-root .opsNote{font-size:.7rem;color:var(--muted-2)}
+.x0a-workspace-root .envLockedCard{margin:.75rem 0 .4rem;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--line);background:var(--surface2)}
+.x0a-workspace-root .envLockedHead{display:flex;align-items:center;gap:.45rem;font-size:.76rem;color:var(--fg);margin-bottom:.25rem}
+.x0a-workspace-root .envLockedDot{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px rgba(56,189,248,0.5)}
+.x0a-workspace-root .envBadge{font-size:.73rem;font-weight:550;color:var(--fg);background:var(--surface2);border-color:var(--line);user-select:none}
+.x0a-workspace-root .opsNote{font-size:.7rem;color:var(--muted-2);line-height:1.4}
 
 .x0a-workspace-root .stepper{display:flex;flex-direction:column}
 .x0a-workspace-root .stepper li{position:relative;padding:.3rem 0 .3rem 1.6rem;font-size:.78rem;color:var(--muted-2)}

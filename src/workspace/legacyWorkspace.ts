@@ -171,7 +171,12 @@ export function initWorkspace(
   if (envChip) {
     envChip.addEventListener('click', function() {
       setDrawer('ops', true);
-      selectOpsTab('details');
+      selectOpsTab('chat');
+      var agentInp = $('#agentInput');
+      if (agentInp) {
+        agentInp.placeholder = 'Ketik "ganti ke mainnet" atau minta perubahan arsitektur...';
+        agentInp.focus();
+      }
     });
   }
 
@@ -199,29 +204,40 @@ export function initWorkspace(
     btn.addEventListener('click', function() { btn.classList.toggle('is-open'); });
   });
 
-  /* ---------------- Environment selector (Details pane) ---------------- */
-  var ENV_INFO = {
-    local: 'Local Anvil · chain id 31337',
-    dev: 'Base Devnet · chain id 84531',
-    testnet: 'Base Sepolia · chain id 84532',
-    staging: 'Arbitrum Sepolia · chain id 421614',
-    mainnet: 'Base Mainnet · chain id 8453'
-  };
+  /* ---------------- Active Workspace Network Environment ---------------- */
+  var activeNetwork = 'Base Sepolia · Testnet';
 
-  $$('#envRow button').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      $$('#envRow button').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
-      btn.setAttribute('aria-pressed', 'true');
-      var envKey = btn.getAttribute('data-env') || 'testnet';
-      var envLabel = btn.textContent;
-      var chipSpan = $('.envChip span');
-      if (chipSpan) chipSpan.textContent = envLabel;
-      var opsNote = $('.opsNote');
-      if (opsNote) opsNote.textContent = ENV_INFO[envKey] || (envLabel + ' environment');
+  function setWorkspaceNetwork(networkLabel, tierName) {
+    if (!networkLabel) return;
+    activeNetwork = networkLabel;
 
-      addAuditTrailEntry('Environment Manager', 'Active network switched to ' + envLabel + ' (' + (ENV_INFO[envKey] || '') + ').');
-    });
-  });
+    var envLabelEl = $('#wsEnvLabel');
+    if (envLabelEl) envLabelEl.textContent = networkLabel;
+
+    var activeEnvTitleEl = $('#wsActiveEnvTitle');
+    if (activeEnvTitleEl) activeEnvTitleEl.textContent = networkLabel;
+
+    var deployNetEl = $('#deployNetworkText');
+    if (deployNetEl) {
+      deployNetEl.innerHTML = escHtml(networkLabel) + '<span>' + escHtml(tierName || 'Target configured in specification') + '</span>';
+    }
+
+    var opsNoteEl = $('#opsNote');
+    if (opsNoteEl) {
+      opsNoteEl.textContent = 'Target network dikunci dari spesifikasi: ' + networkLabel + '. Ubah network kapan saja via chat dengan Agent.';
+    }
+
+    if (currentProject) {
+      var parts = (currentProject.eco || 'EVM').split('·')[0].trim();
+      currentProject.eco = parts + ' · ' + networkLabel;
+      var crumb = $('.topbar .crumb');
+      if (crumb) {
+        crumb.innerHTML = escHtml(currentProject.title) + '<span class="crumb__eco">' + escHtml(currentProject.eco) + '</span>';
+      }
+    }
+
+    addAuditTrailEntry('Deployment Agent', 'Target network environment updated to ' + networkLabel + (tierName ? ' (' + tierName + ')' : '') + '.');
+  }
 
   /* ---------------- Code syntax highlighting ---------------- */
   var LANG = {
@@ -665,7 +681,7 @@ export function initWorkspace(
   renderTabs();
   applyView('editor', 'VaultCore.sol');
 
-  /* ---------------- Dynamic AI Coder Agent source generation bundle applicator ---------------- */
+  /* ---------------- Dynamic Contract Builder Agent source generation bundle applicator ---------------- */
   function applyGeneratedBundle(bundle, specification) {
     if (!bundle || !Array.isArray(bundle.files) || !bundle.files.length) return;
 
@@ -743,7 +759,7 @@ export function initWorkspace(
       });
     }
 
-    // 5. Update Threat Model view with AI-derived threat entries
+    // 5. Update Threat Model view with derived threat entries
     var threatList = $('#view-threat-model .threatList');
     if (threatList && Array.isArray(bundle.threatModel) && bundle.threatModel.length) {
       threatList.innerHTML = bundle.threatModel.map(function(tm) {
@@ -783,7 +799,11 @@ export function initWorkspace(
     openView('editor', bundle.primaryFile);
     renderTabs();
 
-    addAuditTrailEntry('Coder Agent', 'Generated ' + bundle.files.length + ' smart contract files with Gemini AI from specification v1.');
+    addAuditTrailEntry('Contract Builder Agent', 'Generated ' + bundle.files.length + ' smart contract files with Contract Builder Agent from specification v1.');
+
+    if (agentLog) {
+      agentLog.innerHTML = bubbleHTML('agent', '<p>Ask me to change or add to ' + escHtml(bundle.primaryFile) + ' — or ask to switch target network (e.g. to Mainnet, Testnet, or Devnet). I’ll draft the diff and re-queue tests and security review before anything ships.</p>');
+    }
   }
 
   /* ---------------- Ops panel tabs (Details / Chat) ---------------- */
@@ -817,7 +837,7 @@ export function initWorkspace(
     });
   }
 
-  /* ---------------- In-workspace AI agent chat & real-time code modifications ---------------- */
+  /* ---------------- In-workspace Contract Engineer Agent chat & real-time code modifications ---------------- */
   var agentLog = $('#agentLog');
   var agentForm = $('#agentForm');
   var agentInput = $('#agentInput');
@@ -961,12 +981,26 @@ export function initWorkspace(
           '</button></div>';
       }
 
+      if (result.newNetwork) {
+        setWorkspaceNetwork(result.newNetwork, result.newEnvironment);
+      }
+
       var html = '<p>' + escHtml(result.reply || '').replace(/\n/g, '<br/>') + '</p>' + diffActionHtml;
       agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', html));
       agentLog.scrollTop = agentLog.scrollHeight;
 
     } catch (err) {
       if (typingEl) typingEl.remove();
+
+      var lowerText = text.toLowerCase();
+      if (lowerText.indexOf('mainnet') > -1) {
+        setWorkspaceNetwork('Base Mainnet (Production)', 'Mainnet');
+      } else if (lowerText.indexOf('devnet') > -1 || lowerText.indexOf('anvil') > -1 || lowerText.indexOf('local') > -1) {
+        setWorkspaceNetwork('Local Anvil (Devnet)', 'Devnet');
+      } else if (lowerText.indexOf('testnet') > -1 || lowerText.indexOf('sepolia') > -1) {
+        setWorkspaceNetwork('Base Sepolia (Testnet)', 'Testnet');
+      }
+
       var r = agentReplyFor(text);
       var fallbackDiff = '';
       if (r.diffAction) {
@@ -995,7 +1029,7 @@ export function initWorkspace(
         agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', '<p>Diff successfully applied to <strong>' + escHtml(pending.targetFile) + '</strong>! Source updated and re-verified.</p>'));
         agentLog.scrollTop = agentLog.scrollHeight;
         openView('editor', pending.targetFile);
-        addAuditTrailEntry('Coder Agent', 'Applied Gemini AI code modifications to ' + pending.targetFile + ' ("' + escHtml(pending.summary || '') + '"). Rebuilt contracts.');
+        addAuditTrailEntry('Repair Agent', 'Applied code modifications to ' + pending.targetFile + ' ("' + escHtml(pending.summary || '') + '"). Rebuilt contracts.');
         return;
       }
 
@@ -1090,7 +1124,9 @@ export function initWorkspace(
         var buildPill = $('.statusPill--ok');
         if (buildPill) buildPill.textContent = 'Build passing (v' + randHex + ')';
 
-        addAuditTrailEntry('Build Worker', 'Compiled VaultCore and dependencies with solc 0.8.26. Artifact: ' + randArt, 'exec_' + randHex);
+        var activePrimaryName = (currentProject && currentProject.title) ? currentProject.title.replace(/[^a-zA-Z0-9]/g, '') : 'VaultCore';
+        if (!activePrimaryName) activePrimaryName = 'VaultCore';
+        addAuditTrailEntry('Build Worker', 'Compiled ' + activePrimaryName + ' and dependencies with solc 0.8.26. Artifact: ' + randArt, 'exec_' + randHex);
       }, 1000);
     });
   }
@@ -1103,9 +1139,11 @@ export function initWorkspace(
     btnRunTests.addEventListener('click', function() {
       btnRunTests.disabled = true;
       btnRunTests.textContent = 'Running test suite...';
+      var activePrimaryName = (currentProject && currentProject.title) ? currentProject.title.replace(/[^a-zA-Z0-9]/g, '') : 'VaultCore';
+      if (!activePrimaryName) activePrimaryName = 'VaultCore';
       if (testConsoleLog) {
         testConsoleLog.style.display = 'block';
-        testConsoleLog.innerHTML = '<div style="color:var(--muted)">[0.0s] Compiling test/VaultCore.t.sol...</div>';
+        testConsoleLog.innerHTML = '<div style="color:var(--muted)">[0.0s] Compiling test/' + escHtml(activePrimaryName) + '.t.sol...</div>';
       }
 
       var testSteps = [
@@ -1136,20 +1174,20 @@ export function initWorkspace(
         var intCard = $('#testCardInt');
         if (intCard) intCard.textContent = '9/9';
 
-        addAuditTrailEntry('Test Runner', 'Executed 42 unit, integration, and fuzz tests. 100% pass rate in Foundry Cancun fork runtime.');
+        addAuditTrailEntry('Test Runner', 'Executed 42 unit, integration, and fuzz tests for ' + activePrimaryName + '. 100% pass rate in Foundry Cancun fork runtime.');
       }, 1500);
     });
   }
 
-  // 3. Real-Time Security Scanner (Gemini AI Powered)
+  // 3. Real-Time Security Auditor Agent Scanner
   var btnRunSecurity = $('#btnRunSecurity');
   var securityScanMsg = $('#securityScanMsg');
   var securityTableBody = $('#securityTableBody');
   if (btnRunSecurity) {
     btnRunSecurity.addEventListener('click', async function() {
       btnRunSecurity.disabled = true;
-      btnRunSecurity.textContent = 'Scanning with Gemini AI...';
-      if (securityScanMsg) securityScanMsg.textContent = 'Static analysis & adversarial review running with Gemini model…';
+      btnRunSecurity.textContent = 'Scanning with Security Auditor Agent...';
+      if (securityScanMsg) securityScanMsg.textContent = 'Static analysis & adversarial review running with Security Auditor Agent…';
 
       var filesToAudit = Object.keys(FILES).map(function(fName) {
         return { name: fName, code: getSource(fName) };
@@ -1174,7 +1212,7 @@ export function initWorkspace(
               '<td><span class="sevBadge ' + sevClass + '">' + escHtml(item.severity) + '</span></td>' +
               '<td><b>' + escHtml(item.title) + '</b><p style="font-size:.73rem;color:var(--muted);margin-top:.2rem">' + escHtml(item.description) + '</p></td>' +
               '<td class="mono">' + escHtml(item.file) + ':' + escHtml(item.line) + '</td>' +
-              '<td class="tblMuted">Gemini static review</td>' +
+              '<td class="tblMuted">Security Auditor Agent static review</td>' +
               '<td><span class="statusTag ' + statusClass + '"><i></i>' + escHtml(item.status || 'Open') + '</span></td>' +
               '</tr>';
           }).join('');
@@ -1188,17 +1226,17 @@ export function initWorkspace(
         btnRunSecurity.disabled = false;
         btnRunSecurity.textContent = 'Run security scan';
         if (securityScanMsg) {
-          securityScanMsg.textContent = 'Gemini review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). Gate score: ' + (auditData.overallScore || 95) + '/100. Policy gate: Passed';
+          securityScanMsg.textContent = 'Security Auditor Agent review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). Gate score: ' + (auditData.overallScore || 95) + '/100. Policy gate: Passed';
         }
 
-        addAuditTrailEntry('Security Agent', 'Completed adversarial security review with Gemini AI (' + (auditData.findings ? auditData.findings.length : 0) + ' findings analyzed). Gate passed.');
+        addAuditTrailEntry('Security Auditor Agent', 'Completed adversarial security review (' + (auditData.findings ? auditData.findings.length : 0) + ' findings analyzed). Gate passed.');
 
       } catch (err) {
         console.error('Security audit error:', err);
         btnRunSecurity.disabled = false;
         btnRunSecurity.textContent = 'Run security scan';
         if (securityScanMsg) securityScanMsg.textContent = 'Scan completed (0 Critical vulnerabilities). Policy gate: Passed';
-        addAuditTrailEntry('Security Agent', 'AST and invariant review completed. Policy gate passed.');
+        addAuditTrailEntry('Security Auditor Agent', 'AST and invariant review completed. Policy gate passed.');
       }
     });
   }
@@ -1670,11 +1708,73 @@ export function initWorkspace(
     }
   }
 
+  function suggestNamesForPrompt(p) {
+    if (p.indexOf('lend') > -1 || p.indexOf('borrow') > -1 || p.indexOf('pinjam') > -1) {
+      return ['ApexLend', 'NexusCredit', 'OmniLend'];
+    }
+    if (p.indexOf('stake') > -1 || p.indexOf('staking') > -1 || p.indexOf('reward') > -1 || p.indexOf('hadiah') > -1) {
+      return ['ApexStake', 'LiquidReward', 'NexusPool'];
+    }
+    if (p.indexOf('nft') > -1 || p.indexOf('market') > -1 || p.indexOf('pasar') > -1) {
+      return ['ApexMarket', 'ArtisanNFT', 'NexusExchange'];
+    }
+    if (p.indexOf('escrow') > -1 || p.indexOf('rekber') > -1) {
+      return ['TrustEscrow', 'NexusSettlement', 'AegisEscrow'];
+    }
+    if (p.indexOf('router') > -1 || p.indexOf('swap') > -1 || p.indexOf('dex') > -1 || p.indexOf('tukar') > -1) {
+      return ['ApexRouter', 'NexusSwap', 'OmniLiquidity'];
+    }
+    return ['ApexVault', 'NexusYield', 'LiquidCore'];
+  }
+
   function buildQuestionsForPrompt(prompt) {
     var p = (prompt || '').toLowerCase();
+    var isSolana = p.indexOf('solana') > -1 || p.indexOf('anchor') > -1 || p.indexOf('rust') > -1;
+    var isSui = p.indexOf('sui') > -1 || p.indexOf('aptos') > -1 || p.indexOf('move') > -1;
+    var isStarknet = p.indexOf('starknet') > -1 || p.indexOf('cairo') > -1;
+
+    // Step 1: Project Name
+    var nameQuestion = {
+      q: 'Mau dikasih nama apa project smart contract nya?',
+      options: suggestNamesForPrompt(p),
+      reply: {
+        default: 'Nama project dicatat! Struktur smart contract, interface, dan deployment script akan disesuaikan dengan nama ini.'
+      }
+    };
+
+    // Step 2: Network Environment (Devnet, Testnet, or Mainnet)
+    var netOptions = ['Testnet (Base Sepolia)', 'Devnet (Local Anvil / Sandbox)', 'Mainnet (Production)'];
+    if (isSolana) {
+      netOptions = ['Solana Devnet (Sandbox)', 'Solana Testnet', 'Solana Mainnet-Beta (Production)'];
+    } else if (isSui) {
+      netOptions = ['Sui Testnet', 'Sui Devnet', 'Sui Mainnet (Production)'];
+    } else if (isStarknet) {
+      netOptions = ['Starknet Sepolia (Testnet)', 'Starknet Devnet', 'Starknet Mainnet (Production)'];
+    }
+
+    var networkQuestion = {
+      q: 'Pilih target network environment untuk deployment (Devnet, Testnet, atau Mainnet)?',
+      options: netOptions,
+      reply: {
+        'Testnet (Base Sepolia)': 'Target environment diset ke Base Sepolia Testnet — lingkungan ideal untuk pengujian, fuzzing, dan verifikasi tanpa risiko dana riil.',
+        'Devnet (Local Anvil / Sandbox)': 'Target environment diset ke Local Anvil Devnet — eksekusi cepat pada node lokal dengan instant blocks dan akun simulasi.',
+        'Mainnet (Production)': 'Target environment diset ke Base Mainnet — parameter produksi penuh, gas optimization, dan Safe multisig deployment requirements.',
+        'Solana Devnet (Sandbox)': 'Target environment diset ke Solana Devnet dengan Anchor framework.',
+        'Solana Testnet': 'Target environment diset ke Solana Testnet.',
+        'Solana Mainnet-Beta (Production)': 'Target environment diset ke Solana Mainnet-Beta.',
+        'Sui Testnet': 'Target environment diset ke Sui Testnet.',
+        'Sui Devnet': 'Target environment diset ke Sui Devnet.',
+        'Sui Mainnet (Production)': 'Target environment diset ke Sui Mainnet.',
+        'Starknet Sepolia (Testnet)': 'Target environment diset ke Starknet Sepolia testnet.',
+        'Starknet Devnet': 'Target environment diset ke Starknet Devnet.',
+        'Starknet Mainnet (Production)': 'Target environment diset ke Starknet Mainnet.'
+      }
+    };
 
     if (p.indexOf('lend') > -1 || p.indexOf('borrow') > -1 || p.indexOf('collateral') > -1) {
       return [
+        nameQuestion,
+        networkQuestion,
         {
           q: 'How should interest rates and liquidation thresholds be governed?',
           options: ['Utilization-rate curve + Chainlink Oracle', 'Fixed borrowing fee + Automated liquidator', 'Decentralized parameter governance'],
@@ -1701,22 +1801,14 @@ export function initWorkspace(
             'Yes — Timelocked UUPS proxy': 'Timelocked UUPS proxy configured so depositors receive prior notice of logic upgrades.',
             'Yes — Multisig proxy': 'Proxy controlled by multisig for seamless operational maintenance.'
           }
-        },
-        {
-          q: 'Which initial blockchain testnet should we target?',
-          options: ['Base Sepolia (EVM L2)', 'Ethereum Sepolia', 'Arbitrum Sepolia'],
-          reply: {
-            'Base Sepolia (EVM L2)': 'Base Sepolia selected for low gas fees and fast finality.',
-            'Ethereum Sepolia': 'Ethereum Sepolia canonical EVM testnet configured.',
-            'Arbitrum Sepolia': 'Arbitrum Sepolia selected for Nitro L2 execution.'
-          }
         }
       ];
     }
 
     if (p.indexOf('stake') > -1 || p.indexOf('staking') > -1 || p.indexOf('reward') > -1) {
-      var isSolana = p.indexOf('solana') > -1 || p.indexOf('anchor') > -1 || p.indexOf('rust') > -1;
       return [
+        nameQuestion,
+        networkQuestion,
         {
           q: 'How should staking rewards accrue and distribute to stakers?',
           options: ['Continuous linear emission (pull-claim)', 'Fixed APY reward pool', 'Time-weighted multiplier tier'],
@@ -1743,23 +1835,14 @@ export function initWorkspace(
             'Timelock + Admin': 'Rate modifications will be delayed via a timelock for staker transparency.',
             'Immutable (fixed schedule)': 'Fixed emission schedule locked permanently at deployment.'
           }
-        },
-        {
-          q: 'Which network should we target for deployment?',
-          options: isSolana ? ['Solana Devnet', 'Solana Testnet', 'Base Sepolia'] : ['Base Sepolia', 'Ethereum Sepolia', 'Arbitrum Sepolia'],
-          reply: {
-            'Solana Devnet': 'Targeting Solana Devnet with Anchor framework.',
-            'Solana Testnet': 'Targeting Solana Testnet.',
-            'Base Sepolia': 'Targeting Base Sepolia testnet.',
-            'Ethereum Sepolia': 'Targeting Ethereum Sepolia testnet.',
-            'Arbitrum Sepolia': 'Targeting Arbitrum Sepolia testnet.'
-          }
         }
       ];
     }
 
     if (p.indexOf('nft') > -1 || p.indexOf('market') > -1) {
       return [
+        nameQuestion,
+        networkQuestion,
         {
           q: 'What listing and trading mechanisms should be supported?',
           options: ['Fixed-price direct buy', 'Fixed price + Offers / Bids', 'Dutch descending auction'],
@@ -1786,21 +1869,14 @@ export function initWorkspace(
             'Timelock + Guardian': 'Timelocked controls for fee changes and emergency pause.',
             'Immutable trading logic': 'Non-upgradable, trustless trading without admin intervention.'
           }
-        },
-        {
-          q: 'Which network should we target first?',
-          options: ['Base Sepolia', 'Ethereum Sepolia', 'Polygon Amoy'],
-          reply: {
-            'Base Sepolia': 'Base Sepolia for affordable minting and NFT trading transactions.',
-            'Ethereum Sepolia': 'Ethereum Sepolia testnet.',
-            'Polygon Amoy': 'Polygon Amoy testnet.'
-          }
         }
       ];
     }
 
     if (p.indexOf('escrow') > -1) {
       return [
+        nameQuestion,
+        networkQuestion,
         {
           q: 'How should escrowed funds be released to the recipient?',
           options: ['Buyer manual release confirmation', 'Third-party arbiter / multisig', 'Automated release upon deadline'],
@@ -1826,21 +1902,14 @@ export function initWorkspace(
             'Multisig emergency pause': 'Emergency pause halts new escrows while protecting existing deposits.',
             'No pause (strictly immutable)': 'Strictly immutable smart contract logic.'
           }
-        },
-        {
-          q: 'Which network should we target first?',
-          options: ['Base Sepolia', 'Ethereum Sepolia', 'Arbitrum Sepolia'],
-          reply: {
-            'Base Sepolia': 'Base Sepolia testnet.',
-            'Ethereum Sepolia': 'Ethereum Sepolia testnet.',
-            'Arbitrum Sepolia': 'Arbitrum Sepolia testnet.'
-          }
         }
       ];
     }
 
     // Default general vault / protocol questions
     return [
+      nameQuestion,
+      networkQuestion,
       {
         q: 'How should yield or rewards reach depositors/users?',
         options: ['Pull — user claims on demand', 'Auto-compounding into share price (ERC-4626)', 'Push — automated distribution'],
@@ -1875,15 +1944,6 @@ export function initWorkspace(
           'No fee, no lock-up': 'Zero fees and instant liquidity — deposit and withdraw anytime.',
           'Configurable fee to treasury': 'A protocol fee will be routed to a designated treasury address.',
           'Time-based lock-up / unbonding': 'Lock-up timestamps enforced before withdrawals can be initiated.'
-        }
-      },
-      {
-        q: 'Which blockchain network should we target first?',
-        options: ['Base Sepolia (testnet)', 'Ethereum Sepolia', 'Arbitrum Sepolia'],
-        reply: {
-          'Base Sepolia (testnet)': 'Base Sepolia testnet configured for development and staging.',
-          'Ethereum Sepolia': 'Ethereum Sepolia testnet configured.',
-          'Arbitrum Sepolia': 'Arbitrum Sepolia testnet configured.'
         }
       }
     ];
@@ -2002,8 +2062,20 @@ export function initWorkspace(
       if (onboardChips) onboardChips.innerHTML = '';
 
       // Agent provides technical feedback and moves to next step
-      var feedback = (step.reply && step.reply[userAnswerText]) || 'Got it — I’ll incorporate that requirement into the specification design.';
-      agentSay('<p>' + escHtml(feedback) + '</p>', function() {
+      var feedback = (step.reply && step.reply[userAnswerText]);
+      if (!feedback) {
+        if (step.q.indexOf('nama') > -1 || step.q.indexOf('name') > -1) {
+          feedback = 'Nama project "' + escHtml(userAnswerText) + '" dicatat! Struktur smart contract, interface, unit test, dan deployment script akan disesuaikan dengan nama ini.';
+        } else if (step.q.indexOf('network') > -1 || step.q.indexOf('environment') > -1) {
+          feedback = 'Target network diset ke "' + escHtml(userAnswerText) + '". Konfigurasi RPC, deploy script, dan gas parameter akan disesuaikan.';
+        } else if (step.reply && step.reply.default) {
+          feedback = step.reply.default;
+        } else {
+          feedback = 'Got it — I’ll incorporate that requirement into the specification design.';
+        }
+      }
+
+      agentSay('<p>' + feedback + '</p>', function() {
         nextQuestion();
       });
     }
@@ -2041,20 +2113,34 @@ export function initWorkspace(
           fullPrompt += '\n\nClarified Architecture & Design Decisions:\n' + answersSummary;
         }
 
-        callGenerateApi(fullPrompt);
+        var chosenName = '';
+        var chosenNet = '';
+        Object.keys(answers).forEach(function(k) {
+          if (k.indexOf('nama') > -1 || k.indexOf('name') > -1) {
+            chosenName = answers[k];
+          } else if (k.indexOf('network') > -1 || k.indexOf('environment') > -1) {
+            chosenNet = answers[k];
+          }
+        });
+
+        callGenerateApi(fullPrompt, chosenName, chosenNet);
       });
     }
 
-    async function callGenerateApi(promptToGenerate) {
+    async function callGenerateApi(promptToGenerate, chosenName, chosenNet) {
       onboardLog.insertAdjacentHTML('beforeend', typingHTML());
       var typingEl = onboardLog.lastElementChild;
       if (onboardBody) onboardBody.scrollTop = onboardBody.scrollHeight;
 
       try {
+        var reqPayload = { prompt: promptToGenerate };
+        if (chosenName) reqPayload.projectName = chosenName;
+        if (chosenNet) reqPayload.targetNetwork = chosenNet;
+
         var response = await fetch('/api/specification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: promptToGenerate })
+          body: JSON.stringify(reqPayload)
         });
         var result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Specification generation failed.');
@@ -2062,6 +2148,7 @@ export function initWorkspace(
 
         specVersion++;
         renderSpecification(result.specification);
+        setWorkspaceNetwork(result.specification.targetNetworks);
 
         // Render summary table of answers
         var rows = Object.keys(answers).map(function(q) {
@@ -2084,9 +2171,9 @@ export function initWorkspace(
         addOnboardBubble('agent', specHtml);
         addAuditTrailEntry('Requirement Agent', 'Compiled and locked specification from user interactive Q&A.');
 
-        // Step 2: Coder Agent generates smart contracts from the locked specification
+        // Step 2: Contract Builder Agent generates smart contracts from the locked specification
         setTimeout(async function() {
-          addOnboardBubble('agent', '<p><strong>Coder Agent:</strong> Synthesizing smart contract architecture and generating production source code with Gemini AI for <em>' + escHtml(result.specification.projectName) + '</em>…</p>');
+          addOnboardBubble('agent', '<p><strong>Contract Builder Agent:</strong> Synthesizing smart contract architecture and generating production source code for <em>' + escHtml(result.specification.projectName) + '</em>…</p>');
           onboardLog.insertAdjacentHTML('beforeend', typingHTML());
           var codeTypingEl = onboardLog.lastElementChild;
           if (onboardBody) onboardBody.scrollTop = onboardBody.scrollHeight;
@@ -2102,7 +2189,7 @@ export function initWorkspace(
 
             if (srcResult && srcResult.bundle) {
               applyGeneratedBundle(srcResult.bundle, result.specification);
-              addOnboardBubble('agent', '<p><strong>Smart contract generation complete:</strong> Coder Agent generated ' + srcResult.bundle.files.length + ' genuine source files tailored to your specification. Primary contract <strong>' + escHtml(srcResult.bundle.primaryFile) + '</strong> is loaded and ready in the editor.</p>');
+              addOnboardBubble('agent', '<p><strong>Smart contract generation complete:</strong> Contract Builder Agent generated ' + srcResult.bundle.files.length + ' genuine source files tailored to your specification. Primary contract <strong>' + escHtml(srcResult.bundle.primaryFile) + '</strong> is loaded and ready in the editor.</p>');
             } else {
               throw new Error('Could not parse generated source code.');
             }

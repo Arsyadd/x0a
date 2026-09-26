@@ -17,6 +17,9 @@ app.use(express.json({ limit: '64kb' }));
 
 app.post('/api/specification', async (req, res) => {
   const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
+  const projectName = typeof req.body?.projectName === 'string' ? req.body.projectName.trim() : undefined;
+  const targetNetwork = typeof req.body?.targetNetwork === 'string' ? req.body.targetNetwork.trim() : undefined;
+
   if (!prompt) {
     res.status(400).json({ error: 'A project prompt is required.' });
     return;
@@ -27,7 +30,7 @@ app.post('/api/specification', async (req, res) => {
   }
 
   try {
-    const specification = await generateSpecification(prompt);
+    const specification = await generateSpecification(prompt, { projectName, targetNetwork });
     res.json({ specification });
   } catch (error) {
     if (error instanceof SpecificationGenerationError) {

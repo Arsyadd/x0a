@@ -35,7 +35,7 @@ export const STAGES = [
     text: 'A multi-layer testing engine runs everything from compilation and unit tests to fuzzing, invariant checks and economic attack analysis, using the tools native to each ecosystem.',
     chips: ['Compilation', 'Unit', 'Integration', 'Regression', 'Property', 'Invariant', 'Fuzz', 'Differential', 'Static analysis', 'Dependency analysis', 'Adversarial', 'Economic attack', 'Chain-specific checks'] },
   { phase: 2, name: 'Security', agent: 'Tester and Security Agent', out: 'Findings backed by evidence',
-    text: 'Every finding carries severity, confidence, root cause, an exploit scenario and a regression test. AI claims without evidence are marked UNVERIFIED and can never count as a pass. Validated findings enter an auto-fix loop, capped at three attempts before a human is required.',
+    text: 'Every finding carries severity, confidence, root cause, an exploit scenario and a regression test. Agent claims without evidence are marked UNVERIFIED and can never count as a pass. Validated findings enter an auto-fix loop, capped at three attempts before a human is required.',
     chips: ['Critical', 'High', 'Medium', 'Low', 'Informational', 'Unverified', 'Auto-fix, 3 attempts'] },
   { phase: 2, name: 'Adversarial review', agent: 'Red Team and Economic Security Agents', out: 'Attack scenarios and reviewer findings',
     text: 'A red team agent actively tries to break the system and produces reproducible attack scenarios. Economic and dependency reviewers challenge the assumptions, and disagreements are settled by evidence and tool output, never by vote.',
@@ -44,7 +44,7 @@ export const STAGES = [
     text: 'Simulation is ecosystem-native: local forks on EVM, a local validator on Solana, transaction blocks on Sui. The Scenario Lab runs multi-step sequences generated from the threat model and the state model, and every run records evidence.',
     chips: ['Deploy', 'Initialize', 'Deposit', 'Manipulate oracle', 'Borrow', 'Update price', 'Withdraw', 'Repay'] },
   { phase: 3, name: 'Policy gate', agent: 'Deterministic policy engine', out: 'A gate decision',
-    text: 'A deterministic gate, separate from every AI agent, decides whether deployment may proceed. \u201CThe AI says it is safe\u201D is never an input. Policies are configurable, and every change to them is auditable.',
+    text: 'A deterministic gate, separate from every engineering agent, decides whether deployment may proceed. \u201CThe agent says it is safe\u201D is never an input. Policies are configurable, and every change to them is auditable.',
     chips: ['No critical findings', 'No high findings', 'Tests pass', 'Invariants pass', 'Fuzzing passes', 'Simulation passes', 'Artifact hash matches', 'Specification approved', 'Target approved', 'RPC healthy'] },
   { phase: 3, name: 'Wallet approval', agent: 'Deployer Agent', out: 'An unsigned transaction and its preview',
     text: 'The Deployer prepares an unsigned transaction and shows a full preview. You approve it in your own wallet. It can never ask for private keys or seed phrases, and it can never broadcast on its own.',
@@ -86,7 +86,7 @@ export const AGENTS = [
   { name: 'Red Team', role: 'Tries to break it',
     does: ['Attempts access-control bypass, reentrancy, oracle and flash-loan attacks', 'Covers PDA, capability and cross-program abuse', 'Produces reproducible attack scenarios when possible'] },
   { name: 'Economic Security', role: 'Questions the economics',
-    does: ['Oracle and liquidity manipulation, liquidation incentives and insolvency', 'Separates mathematical proof, simulation evidence and heuristic AI analysis'] },
+    does: ['Oracle and liquidity manipulation, liquidation incentives and insolvency', 'Separates mathematical proof, simulation evidence and heuristic analysis'] },
   { name: 'Simulation', role: 'Runs it before it ships',
     does: ['Ecosystem-native simulation: forks, local validators, transaction blocks', 'A Scenario Lab for multi-step attacks generated from the threat model', 'Records evidence for every simulation'] },
   { name: 'Deployer', role: 'Prepares, never signs',
@@ -123,11 +123,11 @@ export const SCOPE_ITEMS = [
 ];
 
 export const RULES = [
-  { rule: 'AI cannot directly access private keys.', by: 'Universal Wallet Layer',
+  { rule: 'Agents cannot directly access private keys.', by: 'Universal Wallet Layer',
     why: 'The wallet layer holds signing authority. Agents only ever see an unsigned transaction preview, never a key or a seed phrase.' },
-  { rule: 'AI cannot bypass deterministic deployment gates.', by: 'Deployment Policy Engine',
+  { rule: 'Agents cannot bypass deterministic deployment gates.', by: 'Deployment Policy Engine',
     why: 'The gate is a separate deterministic system outside every agent call. It can only be satisfied by tool output, never by an agent\u2019s own claim.' },
-  { rule: 'AI cannot mark an unverified claim as verified.', by: 'Evidence System',
+  { rule: 'Agents cannot mark an unverified claim as verified.', by: 'Evidence System',
     why: 'Every claim carries one of five states, and only deterministic tool evidence can move a claim out of unverified.' },
   { rule: 'Deployment requires explicit user authorization.', by: 'Transaction Preview and Wallet Approval',
     why: 'x0a prepares an unsigned transaction with a full preview. Only your signature in your own wallet broadcasts it.' },
@@ -163,7 +163,7 @@ export const JOURNEYS = [
 ];
 
 export const ARCH_P = {
-  ai: { name: 'AI reasons', c: '#E4DEFF' },
+  ai: { name: 'Agents reason', c: '#E4DEFF' },
   det: { name: 'Deterministic systems verify', c: '#C7BDFF' },
   chain: { name: 'The blockchain confirms', c: '#9C8CFF' },
   user: { name: 'The user authorizes', c: '#7A67FF' },
@@ -174,14 +174,14 @@ export const ARCH = [
   { band: 'Reasoning', nodes: [
     { t: 'You and the frontend', d: 'Describe a project, pick an ecosystem and network, or import what already exists.', p: 'user', more: 'A prompt-first home, a project workspace, and import paths for source, ZIPs, repositories and deployed addresses.' },
     { t: 'Orchestrator', d: 'Coordinates agents, permissions, budgets and retries.', p: 'ai', more: 'Inspects project state, selects the agents, orders execution and chooses verification depth. It cannot bypass deterministic security gates.' },
-    { t: 'Specialist agents', d: 'Requirements, architecture, threat models, code, security and more.', p: 'ai', more: 'Requirement, Architect, Threat Model, Coder, Tester and Security, Red Team, Economic Security, Simulation, Deployer, Verification, and Incident and Monitor. Permissions are enforced outside the LLM.' } ] },
+    { t: 'Specialist agents', d: 'Requirements, architecture, threat models, code, security and more.', p: 'ai', more: 'Requirement, Architect, Threat Model, Coder, Tester and Security, Red Team, Economic Security, Simulation, Deployer, Verification, and Incident and Monitor. Permissions are enforced outside model contexts.' } ] },
   { band: 'Native engineering', nodes: [
     { t: 'Universal Contract Model', d: 'One ecosystem-neutral way to describe a contract system.', p: 'det', more: 'A neutral description of assets, roles, state and rules that each ecosystem adapter translates into its own native design.' },
     { t: 'Chain and VM adapters', d: 'EVM, Solana, Move, Cosmos, Starknet, NEAR, Polkadot, Cardano and more.', p: 'det', more: 'One adapter per ecosystem exposes native languages, SDKs, tools, transaction and fee models. New chains join through the Adapter SDK without rewriting the core.' },
     { t: 'Isolated workers', d: 'Disposable and scoped, with no master secrets.', p: 'det', more: 'Ephemeral containers with pinned toolchains, non-root execution, limited resources and no wallet credentials. Generated code never runs anywhere else.' } ] },
   { band: 'Proof and control', nodes: [
-    { t: 'Evidence engine', d: 'Hashes, logs and results tied to an execution ID.', p: 'proof', more: 'Evidence is immutable and auditable. An AI claim without evidence is marked unverified and can never count as a pass.' },
-    { t: 'Security gate', d: 'A deterministic policy engine, separate from the AI.', p: 'det', more: 'Decides whether deployment may proceed: no critical or high findings, tests, invariants and simulation passing, artifact integrity matching. Policy changes are auditable.' },
+    { t: 'Evidence engine', d: 'Hashes, logs and results tied to an execution ID.', p: 'proof', more: 'Evidence is immutable and auditable. An agent claim without evidence is marked unverified and can never count as a pass.' },
+    { t: 'Security gate', d: 'A deterministic policy engine, separate from the engineering agents.', p: 'det', more: 'Decides whether deployment may proceed: no critical or high findings, tests, invariants and simulation passing, artifact integrity matching. Policy changes are auditable.' },
     { t: 'Wallet abstraction', d: 'You authorize in your own wallet.', p: 'user', more: 'Prepares unsigned transactions and a full preview. You sign in your own wallet, and x0a never sees private keys or seed phrases.' } ] },
   { band: 'On chain and after', nodes: [
     { t: 'Blockchain', d: 'The transaction confirms.', p: 'chain', more: 'The transaction is broadcast, followed to finality and reconciled with chain state. An unknown transaction is never silently retried.' },

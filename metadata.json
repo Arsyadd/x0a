@@ -1,6 +1,6 @@
 {
   "name": "x0a | AI Smart Contract Engineer",
-  "description": "x0a is an AI smart contract engineer for every major chain. From a plain-language idea to a tested, reviewed, wallet-approved and monitored deployment.",
+  "description": "x0a is an autonomous smart contract engineering platform for every major chain. From a plain-language idea to a tested, reviewed, wallet-approved and monitored deployment.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

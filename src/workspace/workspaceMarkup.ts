@@ -167,7 +167,7 @@ export const workspaceMarkup = `
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M3.5 15.4V6.1a2.2 2.2 0 0 1 2.2-2.2h8.6a2.2 2.2 0 0 1 2.2 2.2v5.6a2.2 2.2 0 0 1-2.2 2.2H8L4.6 17Z"></path></svg>
 <span>Ask agent</span>
 </button>
-<button class="chip envChip" data-tip="Environment" data-tip-pos="bottom"><span>Testnet</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="m5.5 8 4.5 4.5L14.5 8"></path></svg></button>
+<div class="chip envChip envBadge" data-tip="Target Network (dikonfigurasi di spesifikasi — ubah via chat dengan agent)" data-tip-pos="bottom" id="wsEnvBadge"><span class="envDot"></span><span id="wsEnvLabel">Base Sepolia &middot; Testnet</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="width:11px;height:11px;margin-left:4px;opacity:0.65"><rect height="7" rx="1.5" width="10" x="3" y="7"></rect><path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7"></path></svg></div>
 <button class="wsIconBtn" data-tip="Focus mode" data-tip-pos="bottom" id="focusToggle">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 20 20"><path d="M7 3H4a1 1 0 0 0-1 1v3M13 3h3a1 1 0 0 1 1 1v3M7 17H4a1 1 0 0 1-1-1v-3M13 17h3a1 1 0 0 0 1-1v-3"></path></svg>
 </button>
@@ -987,14 +987,13 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div><dt>Language</dt><dd>Solidity ^0.8.26</dd></div>
 <div><dt>Framework</dt><dd>Foundry</dd></div>
 </dl>
-<div aria-label="Environment" class="envRow" id="envRow" role="group">
-<button data-env="local">Local</button>
-<button data-env="dev">Dev</button>
-<button aria-pressed="true" data-env="testnet">Testnet</button>
-<button data-env="staging">Staging</button>
-<button data-env="mainnet">Mainnet</button>
+<div class="envLockedCard">
+<div class="envLockedHead">
+<span class="envLockedDot"></span>
+<b id="wsActiveEnvTitle">Base Sepolia (Testnet)</b>
 </div>
-<p class="opsNote">Base Sepolia &middot; chain id 84532</p>
+<p class="opsNote" id="opsNote">Target network locked from specification. Change network anytime by asking the Contract Builder Agent in the chat.</p>
+</div>
 </section>
 <section class="opsCard">
 <h3>Project state</h3>
@@ -1056,9 +1055,9 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="agentChat">
 <div class="msgList agentChat__log" id="agentLog"></div>
 <div class="agentChat__suggestions" id="agentSuggestions">
+<button class="qrChip" data-prompt="Switch to Mainnet" type="button">Switch to Mainnet</button>
 <button class="qrChip" data-prompt="Add a withdrawal fee" type="button">Add a withdrawal fee</button>
 <button class="qrChip" data-prompt="Make it pausable" type="button">Make it pausable</button>
-<button class="qrChip" data-prompt="Add role-based access" type="button">Add role-based access</button>
 <button class="qrChip" data-prompt="Explain claimRewards()" type="button">Explain claimRewards()</button>
 </div>
 <form class="agentChat__composer" id="agentForm">

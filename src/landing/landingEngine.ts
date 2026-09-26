@@ -849,7 +849,7 @@ export function runLandingEngine(onLaunchApp: () => void) {
       <div class="ws__body">
         <aside class="ws__left"><p class="ws__label">Project explorer</p><ul class="ws__tree" id="wsTree">${WS_TREE_GROUPS.map(g => `<li class="ws__treegroup" aria-hidden="true"><span>${g[0]}</span></li>` + g[1].map(t => `<li><button type="button" data-doc="${t[0]}"><span>${t[1]}</span><i></i></button></li>`).join('')).join('')}</ul></aside>
         <div class="ws__center">
-          <div class="ws__tabs" role="tablist">${[['stream', 'AI stream'], ['terminal', 'Terminal'], ['diff', 'Diff'], ['tests', 'Tests']].map(t => `<button type="button" role="tab" data-tab="${t[0]}" aria-selected="${t[0] === 'stream'}">${t[1]}</button>`).join('')}</div>
+          <div class="ws__tabs" role="tablist">${[['stream', 'Agent stream'], ['terminal', 'Terminal'], ['diff', 'Diff'], ['tests', 'Tests']].map(t => `<button type="button" role="tab" data-tab="${t[0]}" aria-selected="${t[0] === 'stream'}">${t[1]}</button>`).join('')}</div>
           <div class="ws__view" id="wsView"></div>
           <div class="ws__doc" id="wsDoc" hidden></div>
         </div>

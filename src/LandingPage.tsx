@@ -77,7 +77,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
 
       <main id="main">
         <section className="hero" id="top">
-          <p className="hero__badge"><i></i>The AI engineer for on-chain software</p>
+          <p className="hero__badge"><i></i>The autonomous engineer for on-chain software</p>
           <h1 className="hero__title display" aria-label="Ship smart contracts you can prove.">
             <span className="line" aria-hidden="true"><span className="line__in">Ship smart</span></span>
             <span className="line" aria-hidden="true"><span className="line__in">contracts you</span></span>
@@ -93,7 +93,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
           </div>
           <div className="hero__foot">
             <p className="hero__lede">
-              x0a is an AI smart contract engineer for every major chain. From a plain-language idea to a tested, reviewed, wallet-approved and monitored deployment, with evidence at every step.
+              x0a is an autonomous smart contract engineer for every major chain. From a plain-language idea to a tested, reviewed, wallet-approved and monitored deployment, with evidence at every step.
             </p>
             <div className="hero__actions">
               <a className="btn btn--solid" href="#lifecycle" data-goto="#lifecycle" data-label="Lifecycle" data-roll data-magnetic>
@@ -128,7 +128,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
             </div>
             <div className="manifesto__body">
               <p className="manifesto__text" id="manifestoText">
-                x0a is not another code generator. <span className="pill"></span> It is an AI engineering control plane for on-chain software: the AI reasons, deterministic tools verify, the chain confirms, you authorize, and evidence proves. <span className="pill pill--b"></span> An agent saying a contract is safe is never enough.
+                x0a is not another code generator. <span className="pill"></span> It is an autonomous engineering control plane for on-chain software: specialized agents reason, deterministic tools verify, the chain confirms, you authorize, and evidence proves. <span className="pill pill--b"></span> An agent saying a contract is safe is never enough.
               </p>
               <div className="manifesto__more">
                 <p>What can it build? Anything that runs on a chain. The category picker only helps clarify requirements and never limits what x0a can build.</p>
@@ -172,17 +172,17 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
             <ul className="agents__list" id="agentList"></ul>
             <div className="agents__panel glass" id="agentPanel" aria-live="polite"></div>
           </div>
-          <p className="agents__more">Also on the team: Dependency Intelligence, Upgradeability, Formal Verification, Cross-Chain, Migration and Autonomous Debugging agents, plus an AI Review Board. Tool permissions are enforced outside the LLM.</p>
+          <p className="agents__more">Also on the team: Dependency Intelligence, Upgradeability, Formal Verification, Cross-Chain, Migration and Autonomous Debugging agents, plus an Architecture Review Board. Tool permissions are enforced outside model contexts.</p>
         </section>
 
         <section className="sec evi" id="evidence" data-theme="dark">
           <div className="evi__grid split">
             <div className="evi__text">
               <h2 className="h2 display reveal">
-                <span className="line"><span className="line__in">AI says it.</span></span>
+                <span className="line"><span className="line__in">Agents propose.</span></span>
                 <span className="line"><span className="line__in">Evidence decides.</span></span>
               </h2>
-              <p>An agent believing a function is protected is not enough. Every important claim references evidence, and unverified AI reasoning can never unlock deployment.</p>
+              <p>An agent believing a function is protected is not enough. Every important claim references evidence, and unverified agent reasoning can never unlock deployment.</p>
               <ul className="tags">
                 <li>Source hash</li><li>Code diff</li><li>Compiler output</li><li>Test output</li><li>Fuzz result</li><li>Static scan</li><li>Dependency scan</li><li>Simulation result</li><li>Transaction hash</li><li>Artifact hash</li><li>Explorer verification</li><li>State snapshot</li><li>Tool version</li><li>Execution ID</li>
               </ul>
@@ -202,7 +202,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
               <div className="claim" data-final="unverified">
                 <p className="claim__text">The pool is safe from oracle manipulation.</p>
                 <span className="claim__pill"><i className="p-from">Unverified</i><i className="p-to">Unverified</i></span>
-                <ul className="claim__ev"><li className="is-none">AI analysis only</li></ul>
+                <ul className="claim__ev"><li className="is-none">Heuristic analysis only</li></ul>
               </div>
               <div className="claim" data-final="failed">
                 <p className="claim__text">The upgrade authority is the project multisig.</p>
@@ -225,9 +225,9 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
             <div className="gate__aside">
               <h2 className="h2 display reveal">
                 <span className="line"><span className="line__in">Nothing ships</span></span>
-                <span className="line"><span className="line__in">on an AI's word</span></span>
+                <span className="line"><span className="line__in">on an agent's word</span></span>
               </h2>
-              <p>Deployment is decided by a deterministic policy engine that sits outside the AI agents, and then by you. There is no silent mainnet deployment.</p>
+              <p>Deployment is decided by a deterministic policy engine that sits outside the engineering agents, and then by you. There is no silent mainnet deployment.</p>
             </div>
             <div className="steps" id="steps">
               <div className="steps__line"><div className="steps__fill"></div></div>
@@ -235,7 +235,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
                 <span className="step__dot" aria-hidden="true">1</span>
                 <h3>Policy gate</h3>
                 <p className="step__when">Deterministic</p>
-                <p>Tests, invariants, fuzzing and simulation must pass, with no critical or high findings. The gate is separate from the AI agents and every policy change is auditable.</p>
+                <p>Tests, invariants, fuzzing and simulation must pass, with no critical or high findings. The gate is separate from the engineering agents and every policy change is auditable.</p>
               </article>
               <article className="step">
                 <span className="step__dot" aria-hidden="true">2</span>
@@ -460,7 +460,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
           <footer className="foot">
             <div>
               <p className="foot__label">x0a</p>
-              <p>AI Smart Contract Engineer and Lifecycle Platform.</p>
+              <p>Autonomous Smart Contract Engineer and Lifecycle Platform.</p>
             </div>
             <div>
               <p className="foot__label">Explore</p>
@@ -473,7 +473,7 @@ export default function LandingPage({ onLaunchApp }: LandingPageProps) {
             </div>
             <div>
               <p className="foot__label">The principle</p>
-              <p>AI reasons. Deterministic systems verify. The blockchain confirms. The user authorizes. Evidence proves.</p>
+              <p>Specialized agents reason. Deterministic systems verify. The blockchain confirms. The user authorizes. Evidence proves.</p>
             </div>
             <div>
               <button type="button" className="link" data-goto="#top" data-label="Top" data-roll>Back to top</button>

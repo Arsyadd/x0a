@@ -7,6 +7,8 @@ export interface AgentChatResponse {
   diff?: string;
   newCode?: string;
   actionLabel?: string;
+  newNetwork?: string;
+  newEnvironment?: string;
 }
 
 const CANDIDATE_MODELS = [
@@ -42,6 +44,14 @@ const CHAT_SCHEMA = {
       type: Type.STRING,
       description: 'Short button label for applying the change, e.g. "Apply changes to VaultCore.sol".',
     },
+    newNetwork: {
+      type: Type.STRING,
+      description: 'If the user asked to change/switch network (e.g. to Mainnet, Testnet, or Devnet), specify the target network identifier (e.g. "Base Mainnet (Production)", "Base Sepolia (Testnet)", or "Local Anvil (Devnet)").',
+    },
+    newEnvironment: {
+      type: Type.STRING,
+      description: 'The target environment tier: "Mainnet", "Testnet", or "Devnet".',
+    },
   },
   required: ['reply', 'hasCodeChanges', 'targetFile'],
 };
@@ -62,7 +72,7 @@ export async function handleAgentChat(
     return generateFallbackChatResponse(message, currentFile, currentCode);
   }
 
-  const ai = new GoogleGenAI({
+  const genClient = new GoogleGenAI({
     apiKey,
     httpOptions: {
       headers: {
@@ -71,10 +81,12 @@ export async function handleAgentChat(
     },
   });
 
-  const prompt = `You are the lead AI Smart Contract Engineer and Security Specialist on the x0a platform.
+  const prompt = `You are the lead Contract Builder and Repair Agent on the x0a platform.
 You are assisting a developer in their smart contract workspace.
 
-CRITICAL RULE: DO NOT USE ANY EMOJIS ANYWHERE. Never include emojis in replies, diffs, comments, or code.
+CRITICAL RULES:
+1. DO NOT USE ANY EMOJIS ANYWHERE. Never include emojis in replies, diffs, comments, or code.
+2. NEVER use the words "Gemini", "Gemini AI", "AI", or "Artificial Intelligence" anywhere in your reply, diffs, comments, or code. Always use specialized Agent names such as Contract Builder Agent, Repair Agent, Security Auditor Agent, Testing Agent, Deployment Agent, or Verification Agent.
 
 User Request: "${message}"
 
@@ -90,17 +102,24 @@ Instructions:
 1. If the user asks a question or asks for an explanation (e.g. "Explain claimRewards()", "Bagaimana cara kerja token?", "Apa fungsi reentrancy guard?"):
    - Set hasCodeChanges: false
    - Provide a clear, technical, concise answer in the user's language (Indonesian or English).
-2. If the user requests code changes, additions, bug fixes, or enhancements (e.g. "Add a withdrawal fee", "Make it pausable", "Tambahkan role admin", "Limit max deposit", etc.):
+2. If the user requests to switch, change, or update the target network environment (e.g. "ubah ke mainnet", "ganti ke devnet", "switch to testnet", "pindah ke mainnet", "change to devnet"):
+   - Set hasCodeChanges: false
+   - If mainnet: set newNetwork to "Base Mainnet (Production)" and newEnvironment to "Mainnet".
+   - If devnet/anvil/local: set newNetwork to "Local Anvil (Devnet)" and newEnvironment to "Devnet".
+   - If testnet/sepolia: set newNetwork to "Base Sepolia (Testnet)" and newEnvironment to "Testnet".
+   - In reply, explain that the target environment has been updated, highlighting the network parameters (RPC, gas policies, Safe multi-sig for mainnet vs local node for devnet).
+3. If the user requests code changes, additions, bug fixes, or enhancements (e.g. "Add a withdrawal fee", "Make it pausable", "Tambahkan role admin", "Limit max deposit", etc.):
    - Set hasCodeChanges: true
    - Set targetFile to "${currentFile || 'VaultCore.sol'}"
    - Generate a concise unified diff showing the exact lines added/removed.
    - Provide the COMPLETE updated source code in newCode (must compile, maintain all existing functions, follow Solidity ^0.8.26 best practices).
    - In reply, explain what was changed, the security rationale, and any invariant considerations.
-3. Keep the reply professional and direct without any emojis.`;
+4. Keep the reply professional and direct without any emojis.`;
 
   for (const model of CANDIDATE_MODELS) {
     const isThinkingSupported = model.startsWith('gemini-3');
 
+    let modelStatus = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const config: Record<string, unknown> = {
@@ -112,7 +131,7 @@ Instructions:
           config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         }
 
-        const response = await ai.models.generateContent({
+        const response = await genClient.models.generateContent({
           model,
           contents: [prompt],
           config,
@@ -128,13 +147,23 @@ Instructions:
               diff: parsed.diff ? stripEmojis(parsed.diff) : undefined,
               newCode: parsed.newCode ? stripEmojis(parsed.newCode) : undefined,
               actionLabel: stripEmojis(parsed.actionLabel || `Apply changes to ${currentFile || 'VaultCore.sol'}`),
+              newNetwork: parsed.newNetwork ? stripEmojis(parsed.newNetwork) : undefined,
+              newEnvironment: parsed.newEnvironment ? stripEmojis(parsed.newEnvironment) : undefined,
             };
           }
         }
       } catch (error) {
+        const status = (error && typeof error === 'object' && 'status' in error) ? Number((error as any).status) : 0;
+        modelStatus = status;
+        if (status === 403 || status === 401) {
+          break;
+        }
         // Retry or fallback to next model
         await new Promise((r) => setTimeout(r, 600));
       }
+    }
+    if (modelStatus === 403 || modelStatus === 401) {
+      break;
     }
   }
 
@@ -184,6 +213,49 @@ function generateFallbackChatResponse(
       diff,
       newCode: updated !== currentCode ? updated : currentCode,
       actionLabel: `Apply pausable circuit breaker to ${file}`,
+    };
+  }
+
+  if (
+    t.includes('mainnet') ||
+    t.includes('devnet') ||
+    t.includes('testnet') ||
+    t.includes('sepolia') ||
+    t.includes('jaringan') ||
+    t.includes('switch network') ||
+    t.includes('change network') ||
+    t.includes('ubah network') ||
+    t.includes('ganti network') ||
+    t.includes('pindah network') ||
+    t.includes('switch to') ||
+    t.includes('change to') ||
+    t.includes('ganti ke') ||
+    t.includes('ubah ke')
+  ) {
+    if (t.includes('mainnet')) {
+      return {
+        reply: 'Target network environment berhasil dialihkan ke Base Mainnet (Production · chain id 8453). Parameter deployment gate produksi aktif, Safe multi-sig authorization diberlakukan, dan verifikasi RPC disinkronkan ke workspace.',
+        hasCodeChanges: false,
+        targetFile: file,
+        newNetwork: 'Base Mainnet (Production)',
+        newEnvironment: 'Mainnet',
+      };
+    }
+    if (t.includes('devnet') || t.includes('local') || t.includes('anvil') || t.includes('sandbox')) {
+      return {
+        reply: 'Target network environment berhasil dialihkan ke Local Anvil (Devnet · chain id 31337). Sandbox node lokal aktif dengan instant blocks dan 10 akun pengujian.',
+        hasCodeChanges: false,
+        targetFile: file,
+        newNetwork: 'Local Anvil (Devnet)',
+        newEnvironment: 'Devnet',
+      };
+    }
+    return {
+      reply: 'Target network environment berhasil dialihkan ke Base Sepolia (Testnet · chain id 84532). Siap untuk pengujian on-chain, faucet funding, dan simulasi skenario sebelum deployment mainnet.',
+      hasCodeChanges: false,
+      targetFile: file,
+      newNetwork: 'Base Sepolia (Testnet)',
+      newEnvironment: 'Testnet',
     };
   }
 

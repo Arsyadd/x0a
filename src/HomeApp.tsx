@@ -485,7 +485,7 @@ export default function HomeApp({
                 <span>x0a engineers it end to end.</span>
               </h1>
               <p className="home__lede">
-                An AI smart contract engineer for every major chain. Specification, threat model, contract code, tests, security review, simulation, wallet approval, deployment, verification and monitoring — one lifecycle, evidence at every gate.
+                An autonomous smart contract engineer for every major chain. Specification, threat model, contract code, tests, security review, simulation, wallet approval, deployment, verification and monitoring — one lifecycle, evidence at every gate.
               </p>
 
               {/* ---- Composer ---- */}
@@ -827,7 +827,7 @@ export default function HomeApp({
 
             <section className="mset">
               <h3>Security &amp; verification policy</h3>
-              <p className="mset__hint">The deployment gate is deterministic and sits outside any AI agent. These are the same knobs as the policy engine, scoped to your projects — changes are written to the audit trail.</p>
+              <p className="mset__hint">The deployment gate is deterministic and sits outside any engineering agent. These are the same knobs as the policy engine, scoped to your projects — changes are written to the audit trail.</p>
               <div className="mset__toggleRow">
                 <div>
                   <b>Block deployment on HIGH severity findings</b>
