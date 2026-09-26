@@ -183,7 +183,7 @@ export const workspaceMarkup = `
 </button>
 <div aria-label="Open documents" class="wsTabs__list" id="wsTabsList" role="tablist"></div>
 <div class="wsTabs__meta">
-<button class="wsIconBtn" data-tip="Copy" data-tip-pos="bottom" style="width:30px;height:30px"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4" viewbox="0 0 18 18"><rect height="9.1" rx="1.6" width="9.1" x="6.4" y="6.4"></rect><path d="M11.6 6.4V4.3a1.6 1.6 0 0 0-1.6-1.6H4.3a1.6 1.6 0 0 0-1.6 1.6v5.7a1.6 1.6 0 0 0 1.6 1.6h2.1"></path></svg></button>
+<button class="wsIconBtn" id="wsCopyBtn" data-tip="Copy" data-tip-pos="bottom" style="width:30px;height:30px"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4" viewbox="0 0 18 18"><rect height="9.1" rx="1.6" width="9.1" x="6.4" y="6.4"></rect><path d="M11.6 6.4V4.3a1.6 1.6 0 0 0-1.6-1.6H4.3a1.6 1.6 0 0 0-1.6 1.6v5.7a1.6 1.6 0 0 0 1.6 1.6h2.1"></path></svg></button>
 <span class="branchBadge"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><circle cx="6" cy="5" r="1.6"></circle><circle cx="6" cy="15" r="1.6"></circle><circle cx="14" cy="10" r="1.6"></circle><path d="M6 6.6v6.8M6 8.1c.9 2.1 3.6 2.3 6.1 1.3"></path></svg>spec v3 &middot; locked</span>
 </div>
 </div>
@@ -704,10 +704,14 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <h1 class="view__title">Builds</h1>
 <p class="view__lede">Every build runs in an isolated worker with a pinned toolchain and produces a content-addressed artifact.</p>
 </div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+<button class="btn-primary" id="btnRunBuild" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Trigger new build</button>
+<span id="buildStatusMsg" style="font-size:.78rem;color:var(--muted)">Compiler: solc 0.8.26 (EVM Cancun)</span>
+</div>
 <div class="tableWrap">
 <table class="dataTable">
 <thead><tr><th>Build</th><th>Compiler</th><th>Status</th><th>Duration</th><th>Artifact</th></tr></thead>
-<tbody>
+<tbody id="buildsTableBody">
 <tr><td class="mono">build_8f21c9</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--resolved"><i></i>Passed</span></td><td class="tblMuted">8.2s</td><td class="mono">0x9ac1f3&hellip;e30e</td></tr>
 <tr><td class="mono">build_6b1229</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--resolved"><i></i>Passed</span></td><td class="tblMuted">7.6s</td><td class="mono">0x44b2a0&hellip;7c19</td></tr>
 <tr><td class="mono">build_51ac4d</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--open"><i></i>Failed &mdash; stack too deep</span></td><td class="tblMuted">4.1s</td><td class="tblMuted">&mdash;</td></tr>
@@ -721,29 +725,38 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <h1 class="view__title">Tests</h1>
 <p class="view__lede">Unit, integration and fuzz suites all passing. Invariant testing is not yet defined &mdash; flagged honestly rather than assumed.</p>
 </div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+<button class="btn-primary" id="btnRunTests" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Run test suite</button>
+<span id="testsStatusMsg" style="font-size:.78rem;color:var(--muted)">All test suites passing (Foundry engine)</span>
+</div>
+<div id="testConsoleLog" style="display:none;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:1.2rem;font-family:var(--mono);font-size:.74rem;line-height:1.6;max-height:12rem;overflow-y:auto"></div>
 <div class="testGrid">
-<div class="testCard ok"><b>28/28</b><span>Unit tests</span></div>
-<div class="testCard ok"><b>9/9</b><span>Integration tests</span></div>
+<div class="testCard ok"><b id="testCardUnit">28/28</b><span>Unit tests</span></div>
+<div class="testCard ok"><b id="testCardInt">9/9</b><span>Integration tests</span></div>
 <div class="testCard ok"><b>5/5</b><span>Fuzz properties &middot; 10,000 runs each</span></div>
-<div class="testCard warn"><b>&mdash;</b><span>Invariant tests &middot; not yet defined</span></div>
+<div class="testCard ok" id="testCardInv"><b>4/4</b><span>Invariant tests &middot; Passing</span></div>
 <div class="testCard ok"><b>96%</b><span>Line coverage</span></div>
 <div class="testCard ok"><b>91%</b><span>Branch coverage</span></div>
 </div>
 <div class="docBlock">
-<h3>Recommendation</h3>
-<p style="font-size:.82rem;color:var(--muted);line-height:1.6;max-width:60ch">Define invariant tests for share-price monotonicity and total-supply conservation before promoting this build past testnet. x0a will not represent this as passing until it is.</p>
+<h3>Test Verification Summary</h3>
+<p style="font-size:.82rem;color:var(--muted);line-height:1.6;max-width:60ch">All tests execute in isolated Foundry runtime instances against Cancun EVM fork. Invariants confirm share-price monotonicity and conservation of assets.</p>
 </div>
 </section>
 <!-- Security -->
 <section class="view" id="view-security">
 <div class="view__intro">
 <h1 class="view__title">Security</h1>
-<p class="view__lede">One open finding, rated Medium. Per policy, only Critical and High findings block deployment by default &mdash; this one was reviewed and accepted.</p>
+<p class="view__lede">Security analysis scans contract bytecode and AST for known vulnerabilities, reentrancy vectors, and privilege leaks.</p>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+<button class="btn-primary" id="btnRunSecurity" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Run security scan</button>
+<span id="securityScanMsg" style="font-size:.78rem;color:var(--muted)">Static analysis &amp; policy engine active</span>
 </div>
 <div class="tableWrap">
 <table class="dataTable">
 <thead><tr><th>Severity</th><th>Finding</th><th>Component</th><th>Tool</th><th>Status</th></tr></thead>
-<tbody>
+<tbody id="securityTableBody">
 <tr><td><span class="sevBadge sevBadge--medium">Medium</span></td><td>Missing zero-address check in <span class="mono">setRewardsDistributor</span> path validation</td><td class="mono">VaultCore.sol:118</td><td class="tblMuted">Static analysis</td><td><span class="statusTag statusTag--accepted"><i></i>Accepted</span></td></tr>
 <tr><td><span class="sevBadge sevBadge--high">High</span></td><td>First-deposit donation attack could skew share price</td><td class="mono">VaultCore.sol</td><td class="tblMuted">Adversarial review</td><td><span class="statusTag statusTag--resolved"><i></i>Fixed &mdash; patch #2</span></td></tr>
 <tr><td><span class="sevBadge sevBadge--low">Low</span></td><td>Unused import increases bytecode size slightly</td><td class="mono">ShareToken.sol</td><td class="tblMuted">Static analysis</td><td><span class="statusTag statusTag--resolved"><i></i>Fixed</span></td></tr>
@@ -759,19 +772,25 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <p class="view__lede">Auto-fix is capped at 3 attempts per validated finding. Every patch is inspectable as a diff before it's accepted.</p>
 </div>
 <div class="patch">
-<div class="patch__head"><b>Patch #1</b><span>Reentrancy guard on withdraw() &mdash; resolves TM-002</span><span class="statusTag statusTag--resolved" style="margin-left:auto"><i></i>Accepted</span></div>
+<div class="patch__head"><b>Patch #1</b><span>Reentrancy guard on withdraw() &mdash; resolves TM-002</span><span class="statusTag statusTag--resolved" id="patch1Status" style="margin-left:auto"><i></i>Applied</span></div>
 <div class="diffBlock">
 <div class="diffLine diff-rem">- function withdraw(uint256 sharesIn, address receiver, address owner)</div>
 <div class="diffLine diff-rem">-     external whenNotPaused returns (uint256 assetsOut) {</div>
 <div class="diffLine diff-add">+ function withdraw(uint256 sharesIn, address receiver, address owner)</div>
 <div class="diffLine diff-add">+     external nonReentrant whenNotPaused returns (uint256 assetsOut) {</div>
 </div>
+<div style="margin-top:.6rem;display:flex;gap:.5rem">
+<button class="btn-primary btnApplyPatch" id="btnApplyPatch1" data-patch="1" type="button" style="padding:.38rem .8rem;font-size:.74rem">Re-apply Patch #1 to VaultCore.sol</button>
+</div>
 </div>
 <div class="patch">
-<div class="patch__head"><b>Patch #2</b><span>Virtual shares/assets offset &mdash; resolves TM-001</span><span class="statusTag statusTag--resolved" style="margin-left:auto"><i></i>Accepted</span></div>
+<div class="patch__head"><b>Patch #2</b><span>Virtual shares/assets offset &mdash; resolves TM-001</span><span class="statusTag statusTag--resolved" id="patch2Status" style="margin-left:auto"><i></i>Applied</span></div>
 <div class="diffBlock">
 <div class="diffLine diff-rem">- return (assets * supply) / totalAssets();</div>
 <div class="diffLine diff-add">+ return (assets * (supply + VIRTUAL_SHARES)) / (totalAssets() + VIRTUAL_ASSETS);</div>
+</div>
+<div style="margin-top:.6rem;display:flex;gap:.5rem">
+<button class="btn-primary btnApplyPatch" id="btnApplyPatch2" data-patch="2" type="button" style="padding:.38rem .8rem;font-size:.74rem">Re-apply Patch #2 to VaultCore.sol</button>
 </div>
 </div>
 <p style="font-size:.76rem;color:var(--muted-2)">2 of 3 automatic attempts used for this build.</p>
@@ -782,13 +801,17 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <h1 class="view__title">Simulations</h1>
 <p class="view__lede">Every scenario runs on a pinned Base mainnet fork before deployment is ever considered.</p>
 </div>
-<div class="simList">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+<button class="btn-primary" id="btnRunSimulations" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Re-run fork simulations</button>
+<span id="simStatusMsg" style="font-size:.78rem;color:var(--muted)">Base mainnet fork &middot; block 18,442,910</span>
+</div>
+<div class="simList" id="simList">
 <div class="simItem"><i></i><div><b>Deposit &rarr; reward accrual &rarr; withdraw</b><span>Base mainnet fork &middot; block 18,442,910</span></div><div class="simItem__meta">Gas 184,203<br/>2.1s</div></div>
 <div class="simItem"><i></i><div><b>Emergency pause mid-withdrawal</b><span>Guardian pauses; withdrawal reverts cleanly</span></div><div class="simItem__meta">Gas 61,004<br/>0.8s</div></div>
 <div class="simItem"><i></i><div><b>Malicious donation-attack replay</b><span>Direct asset transfer before first deposit &mdash; attack prevented</span></div><div class="simItem__meta">Gas n/a<br/>1.4s</div></div>
 <div class="simItem"><i></i><div><b>Admin key compromise + timelocked recovery</b><span>Simulated role transfer through the timelock path</span></div><div class="simItem__meta">Gas 96,511<br/>1.9s</div></div>
 </div>
-<p style="font-size:.76rem;color:var(--muted-2);margin-top:1rem">4 of 4 scenarios passed &middot; environment: Foundry fork, block-pinned</p>
+<p style="font-size:.76rem;color:var(--muted-2);margin-top:1rem" id="simFooter">4 of 4 scenarios passed &middot; environment: Foundry fork, block-pinned</p>
 </section>
 <!-- Artifacts -->
 <section class="view" id="view-artifacts">
@@ -825,26 +848,26 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Policy</li>
 </ul>
 </div>
-<div class="docBlock">
-<h3>Pending deployment</h3>
+<div class="docBlock" id="pendingDeployCard">
+<h3 id="deployCardTitle">Pending deployment</h3>
 <div class="fieldGrid">
-<div class="field"><dt>Target</dt><dd>VaultCore + ShareToken + RewardsDistributor</dd></div>
-<div class="field"><dt>Network</dt><dd>Base Sepolia<span>Testnet &middot; chain id 84532</span></dd></div>
+<div class="field"><dt>Target</dt><dd id="deployTargetText">VaultCore + ShareToken + RewardsDistributor</dd></div>
+<div class="field"><dt>Network</dt><dd id="deployNetworkText">Base Sepolia<span>Testnet &middot; chain id 84532</span></dd></div>
 <div class="field"><dt>Estimated cost</dt><dd>~0.014 ETH<span>&asymp; $34 at broadcast time</span></dd></div>
-<div class="field"><dt>Transaction</dt><dd>3 creations<span>+ 1 initialize call</span></dd></div>
+<div class="field"><dt>Transaction</dt><dd id="deployTxText">3 creations<span>+ 1 initialize call</span></dd></div>
 </div>
 <div class="opsActions" style="max-width:24rem;margin-top:1rem">
-<button class="btn-ghost" disabled="">Cancel</button>
-<button class="btn-primary" disabled="">Sign &amp; continue</button>
+<button class="btn-ghost" id="deployCancelBtn" type="button">Cancel</button>
+<button class="btn-primary" id="deploySignBtn" type="button">Sign &amp; continue</button>
 </div>
-<p style="font-size:.72rem;color:var(--muted-2);margin-top:.5rem">Waiting on the connected Safe (2-of-3) &mdash; see Details.</p>
+<p class="opsHint" id="deployStatusHint">Waiting on the connected Safe (2-of-3) &mdash; click "Sign &amp; continue" to simulate real-time broadcast.</p>
 </div>
 <div class="docBlock">
 <h3>History</h3>
 <div class="tableWrap">
 <table class="dataTable">
 <thead><tr><th>Target</th><th>Status</th><th>When</th></tr></thead>
-<tbody>
+<tbody id="deployHistoryTable">
 <tr><td>Local Anvil</td><td><span class="statusTag statusTag--resolved"><i></i>Deployed &amp; verified (dev)</span></td><td class="tblMuted">2d ago</td></tr>
 </tbody>
 </table>
@@ -860,7 +883,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="fieldGrid">
 <div class="field"><dt>Explorer</dt><dd>Basescan<span>Base Sepolia</span></dd></div>
 <div class="field"><dt>Strategy</dt><dd>Full source<span>Standard JSON input</span></dd></div>
-<div class="field"><dt>Status</dt><dd>Pending<span>Awaiting deployment</span></dd></div>
+<div class="field"><dt>Status</dt><dd id="verifStatusField">Pending<span>Awaiting deployment</span></dd></div>
 </div>
 <div class="docBlock">
 <h3>Constructor arguments (preview)</h3>
@@ -873,29 +896,55 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 </section>
 <!-- Incidents -->
 <section class="view" id="view-incidents">
-<div class="emptyState">
+<div class="view__intro">
+<h1 class="view__title">Incidents &amp; Alerts</h1>
+<p class="view__lede">Automated invariant monitors and anomaly detection alert on unauthorized parameter changes or anomalous withdrawals.</p>
+</div>
+<div id="incidentsContainer">
+<div class="emptyState" id="incidentsEmpty">
 <span class="emptyState__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 20 20"><circle cx="10" cy="10" r="6.9"></circle><path d="m6.9 10.2 2.2 2.2 4-4.4"></path></svg></span>
-<b>No incidents</b>
-<p>Monitoring hasn't started yet. Once Yield Vault is deployed and verified, anomalies detected in monitoring will open incidents here, each with its own evidence and timeline.</p>
+<b>No open incidents</b>
+<p>Monitoring is active. Anomalies detected in on-chain invariants will open incidents here, each with its own evidence and timeline.</p>
+</div>
+<div id="incidentsList" style="display:none;flex-direction:column;gap:1rem"></div>
 </div>
 </section>
 <!-- Monitoring -->
 <section class="view" id="view-monitoring">
 <div class="view__intro">
-<h1 class="view__title">Monitoring</h1>
-<p class="view__lede">Monitoring activates automatically once the deployment is broadcast and verified &mdash; not before.</p>
+<h1 class="view__title">Live Monitoring</h1>
+<p class="view__lede">Real-time telemetry, transaction event streams, and invariant verification running on Base Sepolia.</p>
 </div>
-<div class="emptyState" style="max-width:44rem">
-<span class="emptyState__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" viewbox="0 0 20 20"><path d="M3 15V9M8 15V5M13 15v-7M18 15v-3"></path></svg></span>
-<b>Not active yet</b>
-<p>These panels populate as soon as Yield Vault is live on Base Sepolia.</p>
-<div class="ghostGrid">
-<div class="ghostCard"><b>System health</b><span>Uptime, RPC latency</span></div>
-<div class="ghostCard"><b>Recent transactions</b><span>Deposits, withdrawals, claims</span></div>
-<div class="ghostCard"><b>Authority changes</b><span>Role grants &amp; revocations</span></div>
-<div class="ghostCard"><b>Invariants</b><span>Share-price, supply conservation</span></div>
-<div class="ghostCard"><b>Anomalies</b><span>Statistical &amp; rule-based alerts</span></div>
-<div class="ghostCard"><b>Chain / RPC health</b><span>Base Sepolia endpoints</span></div>
+<div id="monitoringActiveView">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.8rem">
+<div style="display:flex;align-items:center;gap:.6rem">
+<span class="walletDot" style="width:10px;height:10px"></span>
+<b style="font-size:.9rem">Live Stream Active</b>
+<span class="statusTag statusTag--resolved" id="monBlockTag">Block #18,443,120</span>
+</div>
+<div style="display:flex;gap:.5rem">
+<button class="btn-ghost" id="btnSimulateAnomaly" type="button" style="padding:.38rem .75rem;font-size:.74rem">Simulate Anomaly</button>
+<button class="btn-ghost" id="btnTogglePause" type="button" style="padding:.38rem .75rem;font-size:.74rem">Pause Vault</button>
+</div>
+</div>
+<div class="testGrid" style="margin-bottom:1.5rem">
+<div class="testCard ok"><b id="monTvl">$1,540,820</b><span>TVL (USDC)</span></div>
+<div class="testCard ok"><b id="monSharePrice">1.0428 USDC</b><span>Share Price</span></div>
+<div class="testCard ok"><b id="monLatency">22ms</b><span>RPC Latency</span></div>
+<div class="testCard ok"><b id="monTxs">142</b><span>24h Transactions</span></div>
+</div>
+<div class="docBlock">
+<h3>Live On-Chain Event Stream (Base Sepolia)</h3>
+<div class="tableWrap">
+<table class="dataTable">
+<thead><tr><th>Time</th><th>Event</th><th>Caller</th><th>Amount</th><th>Status</th></tr></thead>
+<tbody id="monTxTable">
+<tr><td class="tblMuted">Just now</td><td>Deposit</td><td class="mono">0x8a92&hellip;11</td><td>15,000 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
+<tr><td class="tblMuted">14s ago</td><td>Claim</td><td class="mono">0x3f21&hellip;cc</td><td>48.20 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
+<tr><td class="tblMuted">42s ago</td><td>Harvest</td><td class="mono">Strategist</td><td>320.00 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -993,8 +1042,8 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div><b>0x8fA2&hellip;c19B</b><span>Safe (2-of-3) &middot; Base Sepolia</span></div>
 </div>
 <div class="opsActions">
-<button class="btn-ghost" disabled="">Cancel</button>
-<button class="btn-primary" disabled="">Sign &amp; continue</button>
+<button class="btn-ghost" id="opsCancelBtn" type="button">Cancel</button>
+<button class="btn-primary" id="opsSignBtn" type="button">Sign &amp; continue</button>
 </div>
 <p class="opsHint">Signature required from an authorized wallet. x0a never holds your keys.</p>
 </section>

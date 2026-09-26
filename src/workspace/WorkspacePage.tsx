@@ -11,16 +11,14 @@ export default function WorkspacePage({
   initialPrompt = '',
 }: WorkspacePageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
     const root = rootRef.current;
+    if (!root) return;
 
-    if (!root || initializedRef.current) return;
+    // Reset markup to clean state before initializing
+    root.innerHTML = workspaceMarkup;
 
-    initializedRef.current = true;
-
-    // Pass prompt dari HomeApp → React → legacy workspace.
     initWorkspace(root, {
       initialPrompt: initialPrompt.trim(),
     });

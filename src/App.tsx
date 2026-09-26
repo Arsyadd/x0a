@@ -240,6 +240,7 @@ export default function App() {
       }}
     >
       <WorkspacePage
+        key={workspacePrompt}
         initialPrompt={workspacePrompt}
       />
     </div>
