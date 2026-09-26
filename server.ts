@@ -21,13 +21,25 @@ app.post('/api/specification', async (req, res) => {
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: [
-        'Create an implementation-ready software specification using only the project request below. Do not assume it is a blockchain project unless the request says so. Mark unknowns as assumptions instead of inventing facts. Return valid JSON with exactly these fields: projectName, ecosystem, language, framework, contractKind, targetNetworks, complexity, summary, functionalRequirements, securityRequirements, outOfScope, assumptions. The first eight fields must be strings; the last four must be arrays of concise strings. Keep requirements specific to the request.\n\nProject request:\n' + prompt,
-      ],
-      config: { responseMimeType: 'application/json' },
-    });
+    let response;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: [
+            'Create an implementation-ready software specification using only the project request below. Do not assume it is a blockchain project unless the request says so. Mark unknowns as assumptions instead of inventing facts. Return valid JSON with exactly these fields: projectName, ecosystem, language, framework, contractKind, targetNetworks, complexity, summary, functionalRequirements, securityRequirements, outOfScope, assumptions. The first eight fields must be strings; the last four must be arrays of concise strings. Keep requirements specific to the request.\n\nProject request:\n' + prompt,
+          ],
+          config: { responseMimeType: 'application/json' },
+        });
+        break;
+      } catch (error) {
+        const status = error && typeof error === 'object' && 'status' in error ? Number(error.status) : 0;
+        if ((status !== 429 && status !== 503) || attempt === 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 900));
+      }
+    }
+
+    if (!response) throw new Error('Gemini did not return a response.');
 
     const specification = JSON.parse(response.text || '{}');
     const stringFields = ['projectName', 'ecosystem', 'language', 'framework', 'contractKind', 'targetNetworks', 'complexity', 'summary'];
@@ -42,6 +54,11 @@ app.post('/api/specification', async (req, res) => {
     res.json({ specification });
   } catch (error) {
     console.error('Specification generation failed:', error);
+    const status = error && typeof error === 'object' && 'status' in error ? Number(error.status) : 0;
+    if (status === 429 || status === 503) {
+      res.status(status).json({ error: 'Gemini is temporarily busy. Please retry your prompt in a moment.' });
+      return;
+    }
     res.status(502).json({ error: 'Could not generate a specification. Please try again.' });
   }
 });

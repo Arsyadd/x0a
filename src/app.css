@@ -245,20 +245,12 @@ body.is-locked{overflow:hidden}
 .app-scope .send:not(:disabled):hover{filter:brightness(1.14)}
 .app-scope .send svg{width:16px;height:16px}
 
-/* ---- Suggestion strip ---- */
-.app-scope .suggest{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.55rem 1rem;margin-bottom:2.8rem;padding:0 .35rem;min-height:2rem;cursor:pointer;text-align:center;contain:layout style}
-.app-scope .suggest__tag{padding:.2em .8em;border-radius:999px;background:var(--fg);color:var(--bg);font-size:.66rem;font-weight:600;flex:none}
-.app-scope .suggest__text{display:inline-grid;text-align:left;font-size:.86rem;font-weight:500;color:var(--muted);min-height:1.4em}
-.app-scope .suggest__text>*{grid-area:1/1;white-space:nowrap}
-.app-scope .suggest__ghost{visibility:hidden}
-.app-scope .suggest__chips{display:grid}
-.app-scope .suggest__set{grid-area:1/1;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:.32rem;opacity:0;transition:opacity .4s}
-.app-scope .suggest__set.is-on{opacity:1}
-.app-scope .suggest__set li{border:1px solid var(--line);border-radius:999px;padding:.2em .75em;font-size:.72rem;color:var(--muted);white-space:nowrap}
-@media (max-width:959.98px){
-  .app-scope .suggest__chips{flex-basis:100%;justify-items:center}
-  .app-scope .suggest__set li{padding:.2em .6em;font-size:.68rem}
-}
+/* ---- Prompt suggestions ---- */
+.app-scope .promptSuggestions{display:grid;gap:.45rem;margin:-.1rem 0 1rem}
+.app-scope .promptSuggestions__label{font-size:.72rem;color:var(--muted)}
+.app-scope .promptSuggestions__list{display:flex;flex-wrap:wrap;gap:.4rem}
+.app-scope .promptSuggestions__item{padding:.34rem .72rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:.74rem;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+.app-scope .promptSuggestions__item:hover,.app-scope .promptSuggestions__item:focus-visible{background:var(--surface2);color:var(--fg);border-color:var(--line-strong)}
 
 /* ---- Recent projects ---- */
 .app-scope .recent{margin-bottom:2.6rem}

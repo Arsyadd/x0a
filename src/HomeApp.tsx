@@ -70,56 +70,24 @@ export default function HomeApp({
     import: { ph: 'Drop a ZIP, connect a repository, or paste a folder path — x0a picks up the contract’s lifecycle from wherever it left off…', hint: 'Existing tests, configs and prior audits are kept, not discarded.', tools: ['source', 'zip', 'repo'] }
   };
 
-  const PROMPTS = [
-    { q: 'Build a lending protocol.', tags: ['EVM', 'Solidity', 'Foundry', 'Fork simulation'] },
-    { q: 'Create a Solana staking program.', tags: ['Solana', 'Anchor', 'PDA analysis', 'Local validator'] },
-    { q: 'Create a Move-based asset protocol.', tags: ['Move', 'Objects', 'Capabilities'] },
-    { q: 'Build a cross-chain treasury.', tags: ['Cross-chain', 'Replay protection', 'Finality assumptions'] },
-    { q: 'Create a custom escrow system.', tags: ['Escrow', 'State machine', 'Invariant tests'] },
-    { q: 'Create an NFT marketplace.', tags: ['NFT', 'Royalties', 'Access control'] }
-  ];
-
-  const [promptIdx, setPromptIdx] = useState(0);
-  const [typedPrompt, setTypedPrompt] = useState('');
-
-  // Suggestions typewriter effect
-  useEffect(() => {
-    let currentIdx = 0;
-    let charIdx = 0;
-    let isErasing = false;
-    let timeoutId: any;
-
-    function tick() {
-      const current = PROMPTS[currentIdx].q;
-      if (!isErasing) {
-        if (charIdx <= current.length) {
-          setTypedPrompt(current.slice(0, charIdx));
-          charIdx++;
-          timeoutId = setTimeout(tick, 45);
-        } else {
-          timeoutId = setTimeout(() => {
-            isErasing = true;
-            tick();
-          }, 2400);
-        }
-      } else {
-        if (charIdx > 0) {
-          setTypedPrompt(current.slice(0, charIdx - 1));
-          charIdx -= 2;
-          if (charIdx < 0) charIdx = 0;
-          timeoutId = setTimeout(tick, 25);
-        } else {
-          isErasing = false;
-          currentIdx = (currentIdx + 1) % PROMPTS.length;
-          setPromptIdx(currentIdx);
-          timeoutId = setTimeout(tick, 400);
-        }
-      }
+  const promptSuggestions = [
+    {
+      label: 'Lending protocol',
+      prompt: 'Build an EVM lending protocol in Solidity with collateral deposits, borrowing, interest accrual, liquidations, and a pausable emergency control.'
+    },
+    {
+      label: 'Solana staking',
+      prompt: 'Create a Solana staking program using Rust and Anchor. Users should stake tokens, earn time-based rewards, and unstake with a configurable cooldown.'
+    },
+    {
+      label: 'NFT marketplace',
+      prompt: 'Create an NFT marketplace smart contract with fixed-price listings, offers, royalty support, and role-based fee configuration.'
+    },
+    {
+      label: 'Token escrow',
+      prompt: 'Build a token escrow contract where a buyer and seller agree on an amount, release funds on confirmation, and allow refunds after a deadline.'
     }
-
-    timeoutId = setTimeout(tick, 600);
-    return () => clearTimeout(timeoutId);
-  }, []);
+  ];
 
   const projects = [
     { title: 'Yield Vault', status: 'Awaiting wallet approval', time: '12m', icon: 'evm' },
@@ -547,6 +515,24 @@ export default function HomeApp({
                   onChange={e => setPromptText(e.target.value)}
                 />
 
+                {composerMode === 'new' && (
+                  <div className="promptSuggestions" aria-label="Suggested smart contract prompts">
+                    <span className="promptSuggestions__label">Start with an example</span>
+                    <div className="promptSuggestions__list">
+                      {promptSuggestions.map(suggestion => (
+                        <button
+                          key={suggestion.label}
+                          type="button"
+                          className="promptSuggestions__item"
+                          onClick={() => focusComposerWithPrompt(suggestion.prompt)}
+                        >
+                          {suggestion.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="composer__row">
                   {(['source', 'zip', 'repo', 'address'] as const).map(tool => {
                     const isVis = MODES[composerMode].tools.includes(tool);
@@ -617,33 +603,6 @@ export default function HomeApp({
                       <path d="M4 10h12M11 5l5 5-5 5" />
                     </svg>
                   </button>
-                </div>
-              </div>
-
-              {/* ---- Suggestion strip ---- */}
-              <div
-                className="suggest"
-                role="button"
-                tabIndex={0}
-                aria-label="Use this example as your prompt"
-                onClick={() => focusComposerWithPrompt(PROMPTS[promptIdx].q)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    focusComposerWithPrompt(PROMPTS[promptIdx].q);
-                  }
-                }}
-              >
-                <span className="suggest__tag">Try</span>
-                <span className="suggest__text">
-                  <span>{typedPrompt}</span>
-                </span>
-                <div className="suggest__chips" aria-hidden="true">
-                  <ul className="suggest__set is-on">
-                    {PROMPTS[promptIdx].tags.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
                 </div>
               </div>
 

@@ -853,6 +853,7 @@ export function initWorkspace(
   function addOnboardBubble(role, html){
     onboardLog.insertAdjacentHTML('beforeend', bubbleHTML(role, html));
     onboardBody.scrollTop = onboardBody.scrollHeight;
+    return onboardLog.lastElementChild;
   }
 
   function setSpecText(id, value){
@@ -933,7 +934,18 @@ export function initWorkspace(
     } catch (error) {
       typingEl.remove();
       var message = error instanceof Error ? error.message : 'Specification generation failed.';
-      addOnboardBubble('agent', '<p>' + escapeHtml(message) + ' Update the prompt below and try again.</p>');
+      var errorBubble = addOnboardBubble('agent', '<p>' + escapeHtml(message) + ' You can edit the prompt below and retry.</p>');
+      var retryButton = document.createElement('button');
+      retryButton.className = 'retryGeneration';
+      retryButton.type = 'button';
+      retryButton.setAttribute('aria-label', 'Retry specification generation');
+      retryButton.title = 'Retry';
+      retryButton.innerHTML = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>';
+      errorBubble.querySelector('.msg__col').appendChild(retryButton);
+      retryButton.addEventListener('click', function(){
+        errorBubble.remove();
+        generateSpecification(prompt);
+      });
     } finally {
       onboardSend.disabled = false;
       onboardInput.disabled = false;

@@ -4,12 +4,10 @@ import { initWorkspace } from './legacyWorkspace';
 import './workspace.css';
 
 interface WorkspacePageProps {
-  onBackToApp: () => void;
   initialPrompt?: string;
 }
 
 export default function WorkspacePage({
-  onBackToApp,
   initialPrompt = '',
 }: WorkspacePageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -32,16 +30,6 @@ export default function WorkspacePage({
 
   return (
     <div className="x0a-workspace-host">
-      <button
-        type="button"
-        className="x0a-workspace-exit"
-        data-react-back-to-app
-        onClick={onBackToApp}
-        aria-label="Back to Home"
-      >
-        ← Home
-      </button>
-
       <div
         ref={rootRef}
         className="x0a-workspace-root"

@@ -240,7 +240,6 @@ export default function App() {
       }}
     >
       <WorkspacePage
-        onBackToApp={navigateToApp}
         initialPrompt={workspacePrompt}
       />
     </div>
