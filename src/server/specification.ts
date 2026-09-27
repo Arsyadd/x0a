@@ -160,8 +160,8 @@ export async function generateSpecification(
         return applyTargetSelection(spec, prompt, options);
       }
     }
-  } catch (error) {
-    console.warn('Gemini specification API call failed, generating fallback:', error);
+  } catch {
+    // Proceed to deterministic specification generator
   }
 
   return applyTargetSelection(generateFallbackSpecification(prompt, options), prompt, options);

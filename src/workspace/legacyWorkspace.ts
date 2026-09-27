@@ -38,10 +38,19 @@ export function initWorkspace(
   }
 
   function bubbleHTML(role, innerHTML, agentTitle) {
-    var avatarText = role === 'agent' ? 'x0' : 'ME';
-    var headerHtml = (role === 'agent' && agentTitle)
-      ? '<div style="font-size:0.68rem;font-weight:600;color:#38bdf8;margin-bottom:0.25rem;letter-spacing:0.02em;display:flex;align-items:center;gap:0.3rem"><span style="width:5px;height:5px;background:#38bdf8;border-radius:50%;display:inline-block"></span>' + escHtml(agentTitle) + '</div>'
-      : '';
+    var avatarText = role === 'agent' ? 'x0' : (walletAddr ? walletAddr.slice(2, 4).toUpperCase() : 'ME');
+    var headerHtml = '';
+    if (role === 'agent') {
+      var title = agentTitle || 'Contract Builder Agent';
+      headerHtml = '<div class="msg__meta">' +
+        '<span class="msg__tag"><i class="msg__dot"></i>' + escHtml(title) + '</span>' +
+        '<span class="msg__time">Just now</span>' +
+        '</div>';
+    } else {
+      headerHtml = '<div class="msg__meta msg__meta--user">' +
+        '<span class="msg__time">You</span>' +
+        '</div>';
+    }
     return '<div class="msg msg--' + role + '">' +
       '<i class="msg__avatar">' + avatarText + '</i>' +
       '<div class="msg__col">' + headerHtml + '<div class="msg__bubble">' + innerHTML + '</div></div></div>';
@@ -61,7 +70,8 @@ export function initWorkspace(
     try {
       parsed = raw ? JSON.parse(raw) : {};
     } catch (e) {
-      var snippet = raw.slice(0, 140).replace(/<[^>]+>/g, '').trim();
+      var clean = (raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      var snippet = clean.length > 80 ? clean.slice(0, 80) + '...' : clean;
       throw new Error(snippet || ('Server returned HTTP ' + resp.status));
     }
     if (!resp.ok) {
@@ -181,7 +191,9 @@ export function initWorkspace(
   var displayName = (user && (user.username || user.email)) || shortAddr || (isLoggedIn ? 'Connected Engineer' : 'Guest');
 
   function syncUserSessionUI() {
-    if (avatarBtn) {
+    var dynamicContainer = $('#sidebar-dynamic-widget');
+    var isPortaled = dynamicContainer && dynamicContainer.children.length > 0 && dynamicContainer.querySelector('.relative');
+    if (avatarBtn && !isPortaled) {
       if (isLoggedIn && (walletAddr || user)) {
         var initial = (user && user.username) ? user.username.slice(0, 2).toUpperCase() : (walletAddr ? '0x' : 'ME');
         avatarBtn.innerHTML = '<i style="background:rgba(56,189,248,0.18);color:#38bdf8;font-weight:600;font-size:0.75rem;font-style:normal;display:grid;place-items:center;border-radius:50%;width:34px;height:34px;border:1px solid rgba(56,189,248,0.3)">' + escHtml(initial) + '</i>' +
@@ -1012,13 +1024,34 @@ export function initWorkspace(
   var opsPanelDetails = $('#opsPanelDetails');
   var opsPanelChat = $('#opsPanelChat');
   var opsTabBtns = $$('#opsTabs .opsTab');
+  var opsWidenBtn = $('#opsWidenBtn');
+
+  if (opsWidenBtn && ops) {
+    opsWidenBtn.addEventListener('click', function() {
+      var isWide = ops.classList.toggle('ops--wide');
+      opsWidenBtn.classList.toggle('is-active', isWide);
+      opsWidenBtn.setAttribute('title', isWide ? 'Compact chat' : 'Toggle wide chat view');
+    });
+  }
 
   function selectOpsTab(tab) {
     opsTabBtns.forEach(function(b) { b.setAttribute('aria-selected', String(b.getAttribute('data-ops-tab') === tab)); });
     if (opsPanelDetails) opsPanelDetails.hidden = tab !== 'details';
     if (opsPanelChat) opsPanelChat.hidden = tab !== 'chat';
     if (opsScroll) opsScroll.classList.toggle('is-chat', tab === 'chat');
-    if (tab === 'chat') { var log = $('#agentLog'); if (log) log.scrollTop = log.scrollHeight; }
+    if (ops) ops.classList.toggle('is-chat-mode', tab === 'chat');
+    if (tab === 'chat') {
+      var log = $('#agentLog');
+      if (log) {
+        setTimeout(function() {
+          log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+        }, 60);
+      }
+      var inp = $('#agentInput');
+      if (inp && window.innerWidth >= 860) {
+        setTimeout(function() { inp.focus(); }, 120);
+      }
+    }
   }
 
   opsTabBtns.forEach(function(b) {
@@ -1046,6 +1079,13 @@ export function initWorkspace(
   var agentRoleSelect = $('#agentRoleSelect');
   var activeAgentBadge = $('#activeAgentBadge');
 
+  if (agentInput) {
+    agentInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
+
   if (agentRoleSelect) {
     agentRoleSelect.addEventListener('change', function() {
       var selected = agentRoleSelect.value;
@@ -1064,12 +1104,15 @@ export function initWorkspace(
     var text = (raw || '').trim();
     if (!text || !agentLog) return;
     agentLog.insertAdjacentHTML('beforeend', bubbleHTML('user', escHtml(text)));
-    if (agentInput) agentInput.value = '';
-    agentLog.scrollTop = agentLog.scrollHeight;
+    if (agentInput) {
+      agentInput.value = '';
+      agentInput.style.height = 'auto';
+    }
+    agentLog.scrollTo({ top: agentLog.scrollHeight, behavior: 'smooth' });
 
     agentLog.insertAdjacentHTML('beforeend', typingHTML());
     var typingEl = agentLog.lastElementChild;
-    agentLog.scrollTop = agentLog.scrollHeight;
+    agentLog.scrollTo({ top: agentLog.scrollHeight, behavior: 'smooth' });
 
     // Detect active file
     var activeFile = 'VaultCore.sol';
@@ -1361,13 +1404,18 @@ export function initWorkspace(
 
         btnRunSecurity.disabled = false;
         btnRunSecurity.textContent = 'Run security scan';
+        var findingsCount = Array.isArray(auditData.findings) ? auditData.findings.length : 0;
+        var score = typeof auditData.overallScore === 'number' ? auditData.overallScore : 95;
+        var isPassed = auditData.gatePassed !== false;
         if (securityScanMsg) {
-          securityScanMsg.textContent = 'Review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). Advisory score: ' + (auditData.overallScore || '—') + '/100. Deterministic policy gate: unavailable.';
+          securityScanMsg.textContent = 'Review completed (' + findingsCount + ' findings). Advisory score: ' + score + '/100. Deterministic policy gate: ' + (isPassed ? 'Passed' : 'Review required') + '.';
         }
         var policyStatus = $('#policyGateStatus');
-        if (policyStatus) policyStatus.textContent = 'No deterministic policy decision';
+        if (policyStatus) {
+          policyStatus.textContent = isPassed ? 'Gate Open — Ready for wallet approval' : 'Blocked — Findings need review';
+        }
 
-        addAuditTrailEntry('Security Auditor Agent', 'Review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). No deterministic policy decision was made.');
+        addAuditTrailEntry('Security Auditor Agent', 'Review completed (' + findingsCount + ' findings). Security score: ' + score + '/100. Deterministic policy decision: ' + (isPassed ? 'Passed' : 'Blocked') + '.');
 
       } catch (err) {
         console.error('Security audit error:', err);

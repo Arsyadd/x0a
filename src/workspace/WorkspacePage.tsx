@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useDynamicContext, useIsLoggedIn } from '../auth/dynamicAuth.tsx';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { DynamicWidget, useDynamicContext, useIsLoggedIn } from '../auth/dynamicAuth.tsx';
 import { workspaceMarkup } from './workspaceMarkup';
 import { initWorkspace } from './legacyWorkspace';
 import type { DynamicNetworkOption, ProjectIntake } from '../types/projectIntake';
@@ -31,6 +32,7 @@ export default function WorkspacePage({
   onNavigateHome,
 }: WorkspacePageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [authContainer, setAuthContainer] = useState<HTMLElement | null>(null);
   const {
     networkConfigurations,
     sdkHasLoaded,
@@ -89,6 +91,11 @@ export default function WorkspacePage({
       onConnectWallet: () => setShowAuthFlow(true),
     });
 
+    const sidebarAuthTarget = root.querySelector('#sidebar-dynamic-widget') as HTMLElement | null;
+    if (sidebarAuthTarget) {
+      setAuthContainer(sidebarAuthTarget);
+    }
+
     return undefined;
   }, [
     initialPrompt,
@@ -110,6 +117,7 @@ export default function WorkspacePage({
           __html: workspaceMarkup,
         }}
       />
+      {authContainer && createPortal(<DynamicWidget />, authContainer)}
     </div>
   );
 }

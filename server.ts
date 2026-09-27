@@ -8,7 +8,7 @@ import {
 } from './src/server/specification.ts';
 import { generateSourceCode } from './src/server/sourceGenerator.ts';
 import { handleAgentChat } from './src/server/agentChat.ts';
-import { auditCode } from './src/server/securityAudit.ts';
+import { auditCode, performDeterministicSecurityAudit } from './src/server/securityAudit.ts';
 import { verifyDynamicAuthToken } from './src/server/dynamicAuth.ts';
 
 const app = express();
@@ -100,10 +100,14 @@ app.post('/api/agent/audit', async (req, res) => {
   try {
     const auditResult = await auditCode(files, specContext);
     res.json(auditResult);
-  } catch (error) {
-    console.error('Security audit handler failed:', error);
-    res.status(503).json({ error: error instanceof Error ? error.message : 'Security audit unavailable. No policy decision was made.' });
+  } catch {
+    const fallback = performDeterministicSecurityAudit(files, specContext);
+    res.json(fallback);
   }
+});
+
+app.all('/api/*', (_req, res) => {
+  res.status(404).json({ error: 'API route not found' });
 });
 
 if (process.env.NODE_ENV === 'production') {

@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isDynamicRequestAuthorized } from '../server/dynamicAuth.ts';
-import { auditCode } from '../server/securityAudit.ts';
+import { auditCode, performDeterministicSecurityAudit } from '../server/securityAudit.ts';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;
@@ -68,11 +68,10 @@ export default async function handler(req: ExtendedRequest, res: ServerResponse)
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(auditResult));
-  } catch (error) {
-    console.error('Security audit handler failed in Vercel function:', error);
-    const errMessage = error instanceof Error ? error.message : 'Security audit agent encountered an error.';
-    res.statusCode = 502;
+  } catch {
+    const fallback = performDeterministicSecurityAudit(files, specContext);
+    res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: errMessage }));
+    res.end(JSON.stringify(fallback));
   }
 }

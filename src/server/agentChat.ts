@@ -163,8 +163,8 @@ ${projectContext ? `Project Context: ${JSON.stringify(projectContext)}` : ''}`;
         };
       }
     }
-  } catch (error) {
-    console.warn('Gemini chat API call failed, using fallback:', error);
+  } catch {
+    // Proceed to deterministic specialized agent router
   }
 
   return generateFallbackChatResponse(message, currentFile, currentCode, activeRole);

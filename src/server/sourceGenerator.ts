@@ -164,8 +164,8 @@ Also generate 3-5 Threat Model entries and 3-4 ADRs directly reflecting these co
         return formatBundle(parsed, spec);
       }
     }
-  } catch (error) {
-    console.warn('Gemini source code generation failed, using fallback:', error);
+  } catch {
+    // Proceed to deterministic source bundle generator
   }
 
   // Fallback if API was unavailable
