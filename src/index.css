@@ -62,3 +62,100 @@ body,
   line-height: 1;
   font-variation-settings: "opsz" 96, "wdth" 90;
 }
+
+/* =========================================================
+   Unified Dropdown & Select Architecture (x0a Design System)
+   Precise alignment, domain-native styling, anti-slop zero-pill
+   ========================================================= */
+.x0a-selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.x0a-select {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--surface2, #18181c);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.09));
+  border-radius: 8px;
+  color: var(--fg, #f4f4f6);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 0 2.2rem 0 0.85rem;
+  cursor: pointer;
+  outline: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.x0a-select:hover {
+  border-color: var(--line-strong, rgba(255, 255, 255, 0.18));
+  background-color: var(--surface3, #202026);
+}
+
+.x0a-select:focus,
+.x0a-select:focus-visible {
+  border-color: var(--blue-soft, #6060ff);
+  box-shadow: 0 0 0 3px var(--blue-dim, rgba(75, 61, 255, 0.2));
+}
+
+.x0a-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.x0a-select option {
+  background-color: #141418;
+  color: #f4f4f6;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.x0a-selectArrow {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 13px;
+  height: 13px;
+  color: var(--muted, rgba(255, 255, 255, 0.45));
+  transition: color 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.x0a-selectWrap:hover .x0a-selectArrow {
+  color: var(--fg, #f4f4f6);
+}
+
+.x0a-selectWrap:focus-within .x0a-selectArrow {
+  color: var(--blue-soft, #6060ff);
+}
+
+/* Compact variant for toolbars / headers */
+.x0a-select--sm {
+  height: 32px;
+  padding: 0 1.95rem 0 0.75rem;
+  font-size: 0.72rem;
+  border-radius: 7px;
+}
+
+.x0a-selectWrap--sm .x0a-selectArrow,
+.x0a-selectWrap.composer__selectWrap .x0a-selectArrow {
+  right: 0.65rem;
+  width: 12px;
+  height: 12px;
+}
+

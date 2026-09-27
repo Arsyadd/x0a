@@ -674,12 +674,14 @@
 .x0a-workspace-root .onboard__dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);transition:background .2s}
 .x0a-workspace-root .onboard__dot.is-done{background:var(--ok)}
 .x0a-workspace-root .onboard__dot.is-current{background:var(--blue-soft);box-shadow:0 0 0 3px var(--blue-dim)}
-.x0a-workspace-root .onboardTarget{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;max-width:46rem;width:calc(100% - 2 * var(--edge));margin:.75rem auto 0;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
-.x0a-workspace-root .onboardTarget label{display:grid;gap:.3rem;min-width:0}
-.x0a-workspace-root .onboardTarget label span{font-size:.66rem;color:var(--muted)}
-.x0a-workspace-root .onboardTarget select{width:100%;min-width:0;padding:.48rem 1.6rem .48rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--fg);font:inherit;font-size:.72rem;text-overflow:ellipsis}
-.x0a-workspace-root .onboardTarget select:focus-visible{outline:2px solid var(--blue-soft);outline-offset:1px}
-.x0a-workspace-root .onboardTarget__notice{grid-column:1/-1;font-size:.66rem;color:var(--muted-2);line-height:1.4}
+.x0a-workspace-root .onboardTarget{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;max-width:46rem;width:calc(100% - 2 * var(--edge));margin:.75rem auto 0;padding:.85rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.x0a-workspace-root .onboardTarget label{display:grid;gap:.35rem;min-width:0}
+.x0a-workspace-root .onboardTarget label span{font-size:.68rem;font-weight:550;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.x0a-workspace-root .onboardTarget .x0a-selectWrap{width:100%}
+.x0a-workspace-root .onboardTarget select{width:100%;min-width:0;height:38px;padding:0 2.2rem 0 .85rem;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--fg);font:inherit;font-size:.76rem;text-overflow:ellipsis}
+.x0a-workspace-root .onboardTarget select:hover{border-color:var(--line-strong);background:var(--surface2)}
+.x0a-workspace-root .onboardTarget select:focus-visible{outline:none;border-color:var(--blue-soft);box-shadow:0 0 0 3px var(--blue-dim)}
+.x0a-workspace-root .onboardTarget__notice{grid-column:1/-1;font-size:.68rem;color:var(--muted-2);line-height:1.45}
 
 .x0a-workspace-root .onboard__body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .onboard__log{max-width:42rem;margin:0 auto;padding:1.6rem var(--edge) 2rem}
@@ -749,10 +751,12 @@
 .x0a-workspace-root .agentChat__subtitle{font-size:.64rem;color:var(--muted-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .x0a-workspace-root .agentChat__roleWrapper{flex:none}
-.x0a-workspace-root .agentChat__selectWrap{position:relative;display:inline-flex;align-items:center}
-.x0a-workspace-root .agentChat__select{appearance:none;-webkit-appearance:none;padding:.32rem 1.6rem .32rem .65rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:.68rem;font-weight:500;font-family:inherit;cursor:pointer;outline:none;transition:border-color .15s}
-.x0a-workspace-root .agentChat__select:focus{border-color:var(--blue-soft)}
-.x0a-workspace-root .agentChat__selectArrow{position:absolute;right:.55rem;pointer-events:none;width:10px;height:10px;color:var(--muted)}
+.x0a-workspace-root .agentChat__selectWrap{position:relative;display:inline-flex;align-items:center;min-width:180px}
+.x0a-workspace-root .agentChat__select{appearance:none;-webkit-appearance:none;height:32px;padding:0 1.95rem 0 .75rem;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font-size:.72rem;font-weight:500;font-family:inherit;cursor:pointer;outline:none;transition:border-color .18s,background-color .18s,box-shadow .18s}
+.x0a-workspace-root .agentChat__select:hover{border-color:var(--line-strong);background:var(--surface3)}
+.x0a-workspace-root .agentChat__select:focus{border-color:var(--blue-soft);box-shadow:0 0 0 2px var(--blue-dim)}
+.x0a-workspace-root .agentChat__selectArrow{position:absolute;right:.65rem;top:50%;transform:translateY(-50%);pointer-events:none;width:12px;height:12px;color:var(--muted);transition:color .18s,transform .18s}
+.x0a-workspace-root .agentChat__selectWrap:hover .agentChat__selectArrow{color:var(--fg)}
 
 /* Chat Message Log */
 .x0a-workspace-root .agentChat__log{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:1.1rem 1rem .8rem;scrollbar-width:none;-ms-overflow-style:none}

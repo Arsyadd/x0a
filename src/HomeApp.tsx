@@ -525,28 +525,31 @@ export default function HomeApp({
                     );
                   })}
 
-                  <div className="eco-picker" role="group" aria-label="Ecosystem">
-                    {[
-                      { id: 'auto', label: 'Auto-detect' },
-                      { id: 'evm', label: 'EVM' },
-                      { id: 'solana', label: 'Solana' },
-                      { id: 'sui', label: 'Sui' },
-                      { id: 'aptos', label: 'Aptos' },
-                      { id: 'cosmos', label: 'Cosmos' },
-                      { id: 'starknet', label: 'Starknet' },
-                      { id: 'near', label: 'NEAR' },
-                      { id: 'polkadot', label: 'Polkadot' },
-                      { id: 'cardano', label: 'Cardano' }
-                    ].map(eco => (
-                      <button
-                        key={eco.id}
-                        className="chip"
-                        aria-pressed={selectedEco === eco.id}
-                        onClick={() => setSelectedEco(eco.id)}
+                  <div className="composer__targetWrap">
+                    <span className="composer__targetLabel">Target</span>
+                    <div className="x0a-selectWrap composer__selectWrap">
+                      <select
+                        id="composerEcoSelect"
+                        className="x0a-select x0a-select--sm composer__select"
+                        value={selectedEco}
+                        onChange={e => setSelectedEco(e.target.value)}
+                        aria-label="Target ecosystem"
                       >
-                        <b>{eco.label}</b>
-                      </button>
-                    ))}
+                        <option value="auto">Auto-detect ecosystem</option>
+                        <option value="evm">EVM · Base / Ethereum / Arbitrum</option>
+                        <option value="solana">Solana · SVM</option>
+                        <option value="sui">Sui · Move</option>
+                        <option value="aptos">Aptos · Move</option>
+                        <option value="cosmos">Cosmos · CosmWasm</option>
+                        <option value="starknet">Starknet · Cairo</option>
+                        <option value="near">NEAR</option>
+                        <option value="polkadot">Polkadot</option>
+                        <option value="cardano">Cardano</option>
+                      </select>
+                      <svg className="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                        <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
@@ -807,34 +810,48 @@ export default function HomeApp({
               <h3>Project defaults</h3>
               <p className="mset__hint">Applied the moment you start a new project from Home — override any of it per project, any time.</p>
               <div className="mset__row">
-                <label>Default ecosystem</label>
-                <div className="eco-picker" role="group" aria-label="Default ecosystem" style={{ overflowX: 'visible', flexWrap: 'wrap' }}>
-                  {['auto', 'evm', 'solana', 'sui', 'aptos', 'cosmos', 'starknet', 'near', 'polkadot', 'cardano'].map(eco => (
-                    <button
-                      key={eco}
-                      type="button"
-                      className="chip"
-                      aria-pressed={defaultEco === eco}
-                      onClick={() => setDefaultEco(eco)}
-                    >
-                      <b>{eco === 'auto' ? 'Auto-detect' : eco.toUpperCase()}</b>
-                    </button>
-                  ))}
+                <label htmlFor="defaultEcoSelect">Default ecosystem</label>
+                <div className="x0a-selectWrap">
+                  <select
+                    id="defaultEcoSelect"
+                    className="x0a-select"
+                    value={defaultEco}
+                    onChange={e => setDefaultEco(e.target.value)}
+                    aria-label="Default ecosystem"
+                  >
+                    <option value="auto">Auto-detect (recommended)</option>
+                    <option value="evm">EVM · Base / Ethereum / Arbitrum</option>
+                    <option value="solana">Solana · SVM</option>
+                    <option value="sui">Sui · Move</option>
+                    <option value="aptos">Aptos · Move</option>
+                    <option value="cosmos">Cosmos · CosmWasm</option>
+                    <option value="starknet">Starknet · Cairo</option>
+                    <option value="near">NEAR</option>
+                    <option value="polkadot">Polkadot</option>
+                    <option value="cardano">Cardano</option>
+                  </select>
+                  <svg className="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                    <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
               </div>
               <div className="mset__row">
-                <label>Default network</label>
-                <div className="seg" role="group" aria-label="Default network">
-                  {['Devnet', 'Testnet', 'Mainnet'].map(net => (
-                    <button
-                      key={net}
-                      type="button"
-                      aria-pressed={defaultNet === net}
-                      onClick={() => setDefaultNet(net)}
-                    >
-                      {net}
-                    </button>
-                  ))}
+                <label htmlFor="defaultNetSelect">Default network environment</label>
+                <div className="x0a-selectWrap">
+                  <select
+                    id="defaultNetSelect"
+                    className="x0a-select"
+                    value={defaultNet}
+                    onChange={e => setDefaultNet(e.target.value)}
+                    aria-label="Default network"
+                  >
+                    <option value="Devnet">Devnet (Local testing & rapid iteration)</option>
+                    <option value="Testnet">Testnet (Public faucet & staging validation)</option>
+                    <option value="Mainnet">Mainnet (Production audited deployment)</option>
+                  </select>
+                  <svg className="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                    <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
               </div>
             </section>
@@ -856,18 +873,21 @@ export default function HomeApp({
                 ></button>
               </div>
               <div className="mset__row" style={{ marginTop: '0.9rem' }}>
-                <label>Verification depth</label>
-                <div className="seg" role="group" aria-label="Verification depth">
-                  {['Standard', 'Adaptive'].map(depth => (
-                    <button
-                      key={depth}
-                      type="button"
-                      aria-pressed={verifyDepth === depth}
-                      onClick={() => setVerifyDepth(depth)}
-                    >
-                      {depth}
-                    </button>
-                  ))}
+                <label htmlFor="verifyDepthSelect">Verification depth policy</label>
+                <div className="x0a-selectWrap">
+                  <select
+                    id="verifyDepthSelect"
+                    className="x0a-select"
+                    value={verifyDepth}
+                    onChange={e => setVerifyDepth(e.target.value)}
+                    aria-label="Verification depth"
+                  >
+                    <option value="Standard">Standard (Static analysis, unit tests & bytecode verification)</option>
+                    <option value="Adaptive">Adaptive (Auto-escalate fuzzing, invariant tests & multi-agent audit)</option>
+                  </select>
+                  <svg className="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                    <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
                 <p className="mset__hint" style={{ margin: '0.6rem 0 0' }}>
                   Adaptive escalates fuzzing, simulation, reviewer agents and approval requirements automatically when risk signals appear — value at risk, upgradeability, oracle dependence, custom cryptography and more. x0a explains why the extra checks were triggered.

@@ -11,8 +11,24 @@ export const workspaceMarkup = `
 <div aria-hidden="true" class="onboard__steps" id="onboardSteps"></div>
 </div>
 <section class="onboardTarget" aria-label="Deployment target">
-<label><span>Ecosystem</span><select id="targetEcosystem" aria-label="Choose ecosystem"></select></label>
-<label class="onboardTarget__chain"><span>Chain / Network</span><select id="targetNetwork" aria-label="Choose chain and network"></select></label>
+<label>
+  <span>Ecosystem</span>
+  <div class="x0a-selectWrap">
+    <select id="targetEcosystem" class="x0a-select" aria-label="Choose ecosystem"></select>
+    <svg class="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+</label>
+<label class="onboardTarget__chain">
+  <span>Chain / Network</span>
+  <div class="x0a-selectWrap">
+    <select id="targetNetwork" class="x0a-select" aria-label="Choose chain and network"></select>
+    <svg class="x0a-selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+</label>
 <p id="targetNetworkNotice" class="onboardTarget__notice" role="status"></p>
 </section>
 <div class="onboard__body">
@@ -925,8 +941,8 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
     </div>
   </div>
   <div class="agentChat__roleWrapper">
-    <div class="agentChat__selectWrap">
-      <select id="agentRoleSelect" class="agentChat__select" aria-label="Select specialized agent">
+    <div class="x0a-selectWrap agentChat__selectWrap">
+      <select id="agentRoleSelect" class="x0a-select x0a-select--sm agentChat__select" aria-label="Select specialized agent">
         <option value="Contract Builder Agent">Contract Builder Agent</option>
         <option value="Security Auditor Agent">Security Auditor Agent</option>
         <option value="Testing &amp; Verification Agent">Testing &amp; Verification Agent</option>
@@ -934,7 +950,9 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
         <option value="Requirement Agent">Requirement Agent</option>
         <option value="Auto-Route">Auto-Route (Smart Delegation)</option>
       </select>
-      <svg class="agentChat__selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="x0a-selectArrow agentChat__selectArrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
     </div>
   </div>
 </div>

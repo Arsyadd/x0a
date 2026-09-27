@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DynamicWidget, useDynamicContext, useIsLoggedIn } from '../auth/dynamicAuth.tsx';
+import { DynamicWidget, useDynamicContext, useIsLoggedIn, extractUserEmail } from '../auth/dynamicAuth.tsx';
 import { workspaceMarkup } from './workspaceMarkup';
 import { initWorkspace } from './legacyWorkspace';
 import type { DynamicNetworkOption, ProjectIntake } from '../types/projectIntake';
@@ -83,8 +83,8 @@ export default function WorkspacePage({
         chain: primaryWallet.chain || 'EVM',
       } : undefined,
       user: user ? {
-        email: user.email,
-        username: user.username,
+        email: extractUserEmail(user) || user.email,
+        username: user.username || (extractUserEmail(user) ? extractUserEmail(user)!.split('@')[0] : 'Engineer'),
       } : undefined,
       isLoggedIn,
       onLogOut: handleLogOut,
@@ -93,6 +93,7 @@ export default function WorkspacePage({
 
     const sidebarAuthTarget = root.querySelector('#sidebar-dynamic-widget') as HTMLElement | null;
     if (sidebarAuthTarget) {
+      sidebarAuthTarget.innerHTML = '';
       setAuthContainer(sidebarAuthTarget);
     }
 

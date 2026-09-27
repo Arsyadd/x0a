@@ -19,9 +19,12 @@
                     var sanitize = function(obj) {
                       if (!obj || typeof obj !== 'object') return;
                       if (obj.embeddedWallets) {
-                        obj.embeddedWallets.automaticEmbeddedWalletCreation = false;
-                        obj.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
-                        obj.embeddedWallets.defaultWalletVersion = undefined;
+                        obj.embeddedWallets.automaticEmbeddedWalletCreation = true;
+                        obj.embeddedWallets.automaticEmbeddedWalletCreationForExternal = true;
+                        obj.embeddedWallets.forceAuthenticatorAtSignup = false;
+                        if (obj.embeddedWallets.defaultWalletVersion === 'V3') {
+                          delete obj.embeddedWallets.defaultWalletVersion;
+                        }
                         updated = true;
                       }
                       if (Array.isArray(obj.chainConfigurations)) {
@@ -138,23 +141,31 @@
                           return evmOnly;
                         };
 
-                        if (data.sdk && data.sdk.embeddedWallets) {
-                          if (data.sdk.embeddedWallets.chainConfigurations) {
-                            data.sdk.embeddedWallets.chainConfigurations = sanitizeChainConfigs(data.sdk.embeddedWallets.chainConfigurations);
+                        var configureEmbedded = function(ew) {
+                          if (!ew || typeof ew !== 'object') return;
+                          ew.automaticEmbeddedWalletCreation = true;
+                          ew.automaticEmbeddedWalletCreationForExternal = true;
+                          ew.forceAuthenticatorAtSignup = false;
+                          if (ew.defaultWalletVersion === 'V3') {
+                            delete ew.defaultWalletVersion;
                           }
-                          data.sdk.embeddedWallets.automaticEmbeddedWalletCreation = false;
-                          data.sdk.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
-                          data.sdk.embeddedWallets.defaultWalletVersion = undefined;
+                          if (ew.chainConfigurations) {
+                            ew.chainConfigurations = sanitizeChainConfigs(ew.chainConfigurations);
+                          } else {
+                            ew.chainConfigurations = [{ name: 'EVM', enabled: true, primary: true }];
+                          }
+                        };
+
+                        if (data.sdk) {
+                          if (!data.sdk.embeddedWallets) {
+                            data.sdk.embeddedWallets = {};
+                          }
+                          configureEmbedded(data.sdk.embeddedWallets);
                           modified = true;
                         }
 
                         if (data.embeddedWallets) {
-                          if (data.embeddedWallets.chainConfigurations) {
-                            data.embeddedWallets.chainConfigurations = sanitizeChainConfigs(data.embeddedWallets.chainConfigurations);
-                          }
-                          data.embeddedWallets.automaticEmbeddedWalletCreation = false;
-                          data.embeddedWallets.automaticEmbeddedWalletCreationForExternal = false;
-                          data.embeddedWallets.defaultWalletVersion = undefined;
+                          configureEmbedded(data.embeddedWallets);
                           modified = true;
                         }
 
