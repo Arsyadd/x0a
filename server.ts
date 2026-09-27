@@ -100,7 +100,7 @@ app.post('/api/agent/audit', async (req, res) => {
     res.json(auditResult);
   } catch (error) {
     console.error('Security audit handler failed:', error);
-    res.status(502).json({ error: 'Security audit agent encountered an error.' });
+    res.status(503).json({ error: error instanceof Error ? error.message : 'Security audit unavailable. No policy decision was made.' });
   }
 });
 

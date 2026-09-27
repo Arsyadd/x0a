@@ -170,7 +170,7 @@ function stripEmojis(text) {
 async function auditCode(files, specContext) {
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
-    return generateFallbackAudit(files);
+    throw new Error("Security audit service is not configured. No audit was performed.");
   }
   const prompt = `You are the lead Security Auditor Agent on x0a.
 Conduct an adversarial security review and static analysis on the following smart contracts:
@@ -224,39 +224,10 @@ Output structured findings with realistic line numbers, severity, and remediatio
       }
     }
   } catch (error) {
-    console.warn("Gemini security audit API call failed, using fallback:", error);
+    console.warn("Security audit service failed:", error);
+    throw new Error("Security audit failed. No policy decision was made.");
   }
-  return generateFallbackAudit(files);
-}
-function generateFallbackAudit(files) {
-  const mainFile = files[0]?.name || "VaultCore.sol";
-  return {
-    overallScore: 94,
-    gatePassed: true,
-    summary: "Automated static analysis and adversarial security review completed. Code conforms to EVM safety invariants with virtual shares mitigation and reentrancy protection.",
-    findings: [
-      {
-        id: "SEC-001",
-        title: "Centralization risk on privileged role assignment",
-        severity: "Medium",
-        file: mainFile,
-        line: "constructor",
-        description: "Initial admin address is granted DEFAULT_ADMIN_ROLE without mandatory multisig or timelock deployment validation.",
-        recommendation: "Transfer DEFAULT_ADMIN_ROLE to a multi-signature wallet (e.g. Safe 2-of-3) behind a 48h timelock before mainnet broadcast.",
-        status: "Open"
-      },
-      {
-        id: "SEC-002",
-        title: "First-deposit inflation attack mitigation verified",
-        severity: "Info",
-        file: mainFile,
-        line: "convertToShares / convertToAssets",
-        description: "Virtual shares (1e3) and virtual assets (1) prevent initial share-price manipulation via front-running donation.",
-        recommendation: "Ensure initial deposit tests verify dust deposit slippage bounds.",
-        status: "Resolved"
-      }
-    ]
-  };
+  throw new Error("Security audit returned no result. No policy decision was made.");
 }
 
 // src/api/audit.ts

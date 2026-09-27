@@ -145,7 +145,7 @@ export const workspaceMarkup = `
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M3.5 15.4V6.1a2.2 2.2 0 0 1 2.2-2.2h8.6a2.2 2.2 0 0 1 2.2 2.2v5.6a2.2 2.2 0 0 1-2.2 2.2H8L4.6 17Z"></path></svg>
 <span>Ask agent</span>
 </button>
-<div class="chip envChip envBadge" data-tip="Target Network (locked from specification — update via chat with Agent)" data-tip-pos="bottom" id="wsEnvBadge"><span class="envDot"></span><span id="wsEnvLabel">Base Sepolia &middot; Testnet</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="width:11px;height:11px;margin-left:4px;opacity:0.65"><rect height="7" rx="1.5" width="10" x="3" y="7"></rect><path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7"></path></svg></div>
+<div class="chip envChip envBadge" data-tip="Target Network (locked from specification — update via chat with Agent)" data-tip-pos="bottom" id="wsEnvBadge"><span class="envDot"></span><span id="wsEnvLabel">No deployment selected</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="width:11px;height:11px;margin-left:4px;opacity:0.65"><rect height="7" rx="1.5" width="10" x="3" y="7"></rect><path d="M5.5 7V4.5a2.5 2.5 0 0 1 5 0V7"></path></svg></div>
 <button class="wsIconBtn" data-tip="Focus mode" data-tip-pos="bottom" id="focusToggle">
 <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 20 20"><path d="M7 3H4a1 1 0 0 0-1 1v3M13 3h3a1 1 0 0 1 1 1v3M7 17H4a1 1 0 0 1-1-1v-3M13 17h3a1 1 0 0 0 1-1v-3"></path></svg>
 </button>
@@ -207,7 +207,7 @@ export const workspaceMarkup = `
 <ul class="egroup__list">
 <li><button class="enode" data-view="dependencies"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4" viewbox="0 0 18 18"><path d="M9 2 15 5.5v7L9 16 3 12.5v-7Z"></path><path d="M3 5.5 9 9l6-3.5M9 9v7"></path></svg></span><span class="enode__label">Dependencies</span></button></li>
 <li><button class="enode" data-view="builds"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 18 18"><path d="M3 14V8.5l6-4 6 4V14"></path><path d="M7 14v-4h4v4"></path></svg></span><span class="enode__label">Builds</span></button></li>
-<li><button class="enode" data-view="tests"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg></span><span class="enode__label">Tests</span><span class="ecount ecount--ok">42/42</span></button></li>
+<li><button class="enode" data-view="tests"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg></span><span class="enode__label">Tests</span><span class="ecount">Not run</span></button></li>
 <li><button class="enode" data-view="security"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4" viewbox="0 0 18 18"><path d="M9 2 15 4.4v4.2C15 12.6 12.4 15 9 16 5.6 15 3 12.6 3 8.6V4.4Z"></path></svg></span><span class="enode__label">Security</span><span class="ecount ecount--warn">1</span></button></li>
 <li><button class="enode" data-view="patches"><span class="enode__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" viewbox="0 0 18 18"><path d="M5 9h8M9 5v8"></path><circle cx="9" cy="9" r="6.3"></circle></svg></span><span class="enode__label">Patches</span></button></li>
 </ul>
@@ -689,66 +689,40 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <section class="view" id="view-builds">
 <div class="view__intro">
 <h1 class="view__title">Builds</h1>
-<p class="view__lede">Every build runs in an isolated worker with a pinned toolchain and produces a content-addressed artifact.</p>
+<p class="view__lede">Build execution is unavailable until a compiler toolchain is configured.</p>
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
-<button class="btn-primary" id="btnRunBuild" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Trigger new build</button>
-<span id="buildStatusMsg" style="font-size:.78rem;color:var(--muted)">Compiler: solc 0.8.26 (EVM Cancun)</span>
+<button class="btn-primary" id="btnRunBuild" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Compiler unavailable</button>
+<span id="buildStatusMsg" style="font-size:.78rem;color:var(--muted)">No compiler configured; no artifact produced.</span>
 </div>
 <div class="tableWrap">
 <table class="dataTable">
 <thead><tr><th>Build</th><th>Compiler</th><th>Status</th><th>Duration</th><th>Artifact</th></tr></thead>
-<tbody id="buildsTableBody">
-<tr><td class="mono">build_8f21c9</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--resolved"><i></i>Passed</span></td><td class="tblMuted">8.2s</td><td class="mono">0x9ac1f3&hellip;e30e</td></tr>
-<tr><td class="mono">build_6b1229</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--resolved"><i></i>Passed</span></td><td class="tblMuted">7.6s</td><td class="mono">0x44b2a0&hellip;7c19</td></tr>
-<tr><td class="mono">build_51ac4d</td><td class="tblMuted">solc 0.8.26</td><td><span class="statusTag statusTag--open"><i></i>Failed &mdash; stack too deep</span></td><td class="tblMuted">4.1s</td><td class="tblMuted">&mdash;</td></tr>
-</tbody>
+<tbody id="buildsTableBody"><tr><td colspan="5" class="tblMuted">No real build artifacts yet.</td></tr></tbody>
 </table>
 </div>
 </section>
 <!-- Tests -->
 <section class="view" id="view-tests">
-<div class="view__intro">
-<h1 class="view__title">Tests</h1>
-<p class="view__lede">Unit, integration and fuzz suites all passing. Invariant testing is not yet defined &mdash; flagged honestly rather than assumed.</p>
-</div>
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
-<button class="btn-primary" id="btnRunTests" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Run test suite</button>
-<span id="testsStatusMsg" style="font-size:.78rem;color:var(--muted)">All test suites passing (Foundry engine)</span>
-</div>
-<div id="testConsoleLog" style="display:none;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:1.2rem;font-family:var(--mono);font-size:.74rem;line-height:1.6;max-height:12rem;overflow-y:auto"></div>
-<div class="testGrid">
-<div class="testCard ok"><b id="testCardUnit">28/28</b><span>Unit tests</span></div>
-<div class="testCard ok"><b id="testCardInt">9/9</b><span>Integration tests</span></div>
-<div class="testCard ok"><b>5/5</b><span>Fuzz properties &middot; 10,000 runs each</span></div>
-<div class="testCard ok" id="testCardInv"><b>4/4</b><span>Invariant tests &middot; Passing</span></div>
-<div class="testCard ok"><b>96%</b><span>Line coverage</span></div>
-<div class="testCard ok"><b>91%</b><span>Branch coverage</span></div>
-</div>
-<div class="docBlock">
-<h3>Test Verification Summary</h3>
-<p style="font-size:.82rem;color:var(--muted);line-height:1.6;max-width:60ch">All tests execute in isolated Foundry runtime instances against Cancun EVM fork. Invariants confirm share-price monotonicity and conservation of assets.</p>
-</div>
+<div class="view__intro"><h1 class="view__title">Tests</h1><p class="view__lede">No executable test harness is configured for this project.</p></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap"><button class="btn-primary" id="btnRunTests" type="button" disabled>Test runner unavailable</button><span id="testsStatusMsg" style="font-size:.78rem;color:var(--muted)">Not run — configure a real test harness.</span></div>
+<div id="testConsoleLog" style="display:none"></div><div class="testGrid"><div class="testCard"><b>Not run</b><span>Tests, fuzzing and coverage</span></div></div>
+<div class="docBlock"><h3>Test status</h3><p style="font-size:.82rem;color:var(--muted);line-height:1.6">No test result or coverage data is available.</p></div>
 </section>
 <!-- Security -->
 <section class="view" id="view-security">
 <div class="view__intro">
 <h1 class="view__title">Security</h1>
-<p class="view__lede">Security analysis scans contract bytecode and AST for known vulnerabilities, reentrancy vectors, and privilege leaks.</p>
+<p class="view__lede">Security review is advisory and requires the configured review service. No deterministic policy gate is available.</p>
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
 <button class="btn-primary" id="btnRunSecurity" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Run security scan</button>
-<span id="securityScanMsg" style="font-size:.78rem;color:var(--muted)">Static analysis &amp; policy engine active</span>
+<span id="securityScanMsg" style="font-size:.78rem;color:var(--muted)">No review has been run.</span>
 </div>
 <div class="tableWrap">
 <table class="dataTable">
 <thead><tr><th>Severity</th><th>Finding</th><th>Component</th><th>Tool</th><th>Status</th></tr></thead>
-<tbody id="securityTableBody">
-<tr><td><span class="sevBadge sevBadge--medium">Medium</span></td><td>Missing zero-address check in <span class="mono">setRewardsDistributor</span> path validation</td><td class="mono">VaultCore.sol:118</td><td class="tblMuted">Static analysis</td><td><span class="statusTag statusTag--accepted"><i></i>Accepted</span></td></tr>
-<tr><td><span class="sevBadge sevBadge--high">High</span></td><td>First-deposit donation attack could skew share price</td><td class="mono">VaultCore.sol</td><td class="tblMuted">Adversarial review</td><td><span class="statusTag statusTag--resolved"><i></i>Fixed &mdash; patch #2</span></td></tr>
-<tr><td><span class="sevBadge sevBadge--low">Low</span></td><td>Unused import increases bytecode size slightly</td><td class="mono">ShareToken.sol</td><td class="tblMuted">Static analysis</td><td><span class="statusTag statusTag--resolved"><i></i>Fixed</span></td></tr>
-<tr><td><span class="sevBadge sevBadge--info">Info</span></td><td>Missing NatSpec on an external function</td><td class="mono">interfaces/IVault.sol</td><td class="tblMuted">Static analysis</td><td><span class="statusTag statusTag--accepted"><i></i>Acknowledged</span></td></tr>
-</tbody>
+<tbody id="securityTableBody"><tr><td colspan="5" class="tblMuted">No audit result yet.</td></tr></tbody>
 </table>
 </div>
 </section>
@@ -756,10 +730,10 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <section class="view" id="view-patches">
 <div class="view__intro">
 <h1 class="view__title">Patches</h1>
-<p class="view__lede">Auto-fix is capped at 3 attempts per validated finding. Every patch is inspectable as a diff before it's accepted.</p>
+<p class="view__lede">Example patch proposals only. They are not validated and cannot be applied without an executable test runner.</p>
 </div>
 <div class="patch">
-<div class="patch__head"><b>Patch #1</b><span>Reentrancy guard on withdraw() &mdash; resolves TM-002</span><span class="statusTag statusTag--resolved" id="patch1Status" style="margin-left:auto"><i></i>Applied</span></div>
+<div class="patch__head"><b>Patch #1</b><span>Reentrancy guard on withdraw() &mdash; resolves TM-002</span><span class="statusTag" id="patch1Status" style="margin-left:auto"><i></i>Draft</span></div>
 <div class="diffBlock">
 <div class="diffLine diff-rem">- function withdraw(uint256 sharesIn, address receiver, address owner)</div>
 <div class="diffLine diff-rem">-     external whenNotPaused returns (uint256 assetsOut) {</div>
@@ -767,57 +741,29 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="diffLine diff-add">+     external nonReentrant whenNotPaused returns (uint256 assetsOut) {</div>
 </div>
 <div style="margin-top:.6rem;display:flex;gap:.5rem">
-<button class="btn-primary btnApplyPatch" id="btnApplyPatch1" data-patch="1" type="button" style="padding:.38rem .8rem;font-size:.74rem">Re-apply Patch #1 to VaultCore.sol</button>
+<button class="btn-primary btnApplyPatch" id="btnApplyPatch1" data-patch="1" type="button" style="padding:.38rem .8rem;font-size:.74rem">Patch unavailable — tests required</button>
 </div>
 </div>
 <div class="patch">
-<div class="patch__head"><b>Patch #2</b><span>Virtual shares/assets offset &mdash; resolves TM-001</span><span class="statusTag statusTag--resolved" id="patch2Status" style="margin-left:auto"><i></i>Applied</span></div>
+<div class="patch__head"><b>Patch #2</b><span>Virtual shares/assets offset &mdash; resolves TM-001</span><span class="statusTag" id="patch2Status" style="margin-left:auto"><i></i>Draft</span></div>
 <div class="diffBlock">
 <div class="diffLine diff-rem">- return (assets * supply) / totalAssets();</div>
 <div class="diffLine diff-add">+ return (assets * (supply + VIRTUAL_SHARES)) / (totalAssets() + VIRTUAL_ASSETS);</div>
 </div>
 <div style="margin-top:.6rem;display:flex;gap:.5rem">
-<button class="btn-primary btnApplyPatch" id="btnApplyPatch2" data-patch="2" type="button" style="padding:.38rem .8rem;font-size:.74rem">Re-apply Patch #2 to VaultCore.sol</button>
+<button class="btn-primary btnApplyPatch" id="btnApplyPatch2" data-patch="2" type="button" style="padding:.38rem .8rem;font-size:.74rem">Patch unavailable — tests required</button>
 </div>
 </div>
-<p style="font-size:.76rem;color:var(--muted-2)">2 of 3 automatic attempts used for this build.</p>
+<p style="font-size:.76rem;color:var(--muted-2)">No patch has been verified against a test suite.</p>
 </section>
 <!-- Simulations -->
 <section class="view" id="view-simulations">
-<div class="view__intro">
-<h1 class="view__title">Simulations</h1>
-<p class="view__lede">Every scenario runs on a pinned Base mainnet fork before deployment is ever considered.</p>
-</div>
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
-<button class="btn-primary" id="btnRunSimulations" type="button" style="padding:.5rem 1rem;font-size:.8rem;font-weight:600">Re-run fork simulations</button>
-<span id="simStatusMsg" style="font-size:.78rem;color:var(--muted)">Base mainnet fork &middot; block 18,442,910</span>
-</div>
-<div class="simList" id="simList">
-<div class="simItem"><i></i><div><b>Deposit &rarr; reward accrual &rarr; withdraw</b><span>Base mainnet fork &middot; block 18,442,910</span></div><div class="simItem__meta">Gas 184,203<br/>2.1s</div></div>
-<div class="simItem"><i></i><div><b>Emergency pause mid-withdrawal</b><span>Guardian pauses; withdrawal reverts cleanly</span></div><div class="simItem__meta">Gas 61,004<br/>0.8s</div></div>
-<div class="simItem"><i></i><div><b>Malicious donation-attack replay</b><span>Direct asset transfer before first deposit &mdash; attack prevented</span></div><div class="simItem__meta">Gas n/a<br/>1.4s</div></div>
-<div class="simItem"><i></i><div><b>Admin key compromise + timelocked recovery</b><span>Simulated role transfer through the timelock path</span></div><div class="simItem__meta">Gas 96,511<br/>1.9s</div></div>
-</div>
-<p style="font-size:.76rem;color:var(--muted-2);margin-top:1rem" id="simFooter">4 of 4 scenarios passed &middot; environment: Foundry fork, block-pinned</p>
+<div class="view__intro"><h1 class="view__title">Simulations</h1><p class="view__lede">No fork simulation runner is configured; no scenarios have run.</p></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap"><button class="btn-primary" id="btnRunSimulations" type="button" disabled>Simulation unavailable</button><span id="simStatusMsg" style="font-size:.78rem;color:var(--muted)">Not run — no simulation environment configured.</span></div>
+<div class="simList" id="simList"><p class="tblMuted">No simulation evidence available.</p></div><p style="font-size:.76rem;color:var(--muted-2);margin-top:1rem" id="simFooter">No simulation evidence available.</p>
 </section>
 <!-- Artifacts -->
-<section class="view" id="view-artifacts">
-<div class="view__intro">
-<h1 class="view__title">Artifacts</h1>
-<p class="view__lede">Content-addressed and linked to the execution that produced them &mdash; the basis for reproducibility and later verification.</p>
-</div>
-<div class="tableWrap">
-<table class="dataTable">
-<thead><tr><th>Artifact</th><th>Type</th><th>Hash</th><th>Execution</th><th>Created</th></tr></thead>
-<tbody>
-<tr><td>VaultCore.sol</td><td class="tblMuted">Runtime bytecode</td><td class="mono">0x9ac1f3&hellip;e30e</td><td class="mono">exec_8f21c9ab</td><td class="tblMuted">12m ago</td></tr>
-<tr><td>VaultCore.sol</td><td class="tblMuted">ABI</td><td class="mono">0x44b2a0&hellip;7c19</td><td class="mono">exec_8f21c9ab</td><td class="tblMuted">12m ago</td></tr>
-<tr><td>Source bundle</td><td class="tblMuted">tar.gz</td><td class="mono">sha256:7ad9e1&hellip;</td><td class="mono">exec_8f21c9ab</td><td class="tblMuted">12m ago</td></tr>
-<tr><td>Fork simulation report</td><td class="tblMuted">JSON</td><td class="mono">sha256:2b81c4&hellip;</td><td class="mono">exec_88f0ab</td><td class="tblMuted">12h ago</td></tr>
-</tbody>
-</table>
-</div>
-</section>
+<section class="view" id="view-artifacts"><div class="view__intro"><h1 class="view__title">Artifacts</h1><p class="view__lede">Build artifacts will appear after a real build completes.</p></div><div class="tableWrap"><table class="dataTable"><thead><tr><th>Artifact</th><th>Type</th><th>Hash</th><th>Execution</th><th>Created</th></tr></thead><tbody><tr><td colspan="5" class="tblMuted">No build artifacts.</td></tr></tbody></table></div></section>
 <!-- Deployments -->
 <section class="view" id="view-deployments">
 <div class="view__intro">
@@ -826,14 +772,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 </div>
 <div class="docBlock">
 <h3>Security gate</h3>
-<ul class="gateList">
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Specification locked</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Tests<span>42/42</span></li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Security<span>1 accepted exception</span></li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Simulation<span>4/4 scenarios</span></li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Artifact integrity</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Policy</li>
-</ul>
+<ul class="gateList"><li>Specification <span>Review required</span></li><li>Tests <span>Not run</span></li><li>Security <span>Not reviewed</span></li><li>Simulation <span>Not run</span></li><li>Artifact integrity <span>No build artifact</span></li><li>Policy <span>Unavailable</span></li></ul>
 </div>
 <div class="docBlock" id="pendingDeployCard">
 <h3 id="deployCardTitle">Pending deployment</h3>
@@ -844,7 +783,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="field"><dt>Transaction</dt><dd id="deployTxText">Not prepared<span>No transaction submitted</span></dd></div>
 </div>
 <div class="opsActions" style="max-width:24rem;margin-top:1rem">
-<button class="btn-ghost" id="deployCancelBtn" type="button">Cancel</button>
+<button class="btn-ghost" id="deployCancelBtn" type="button" disabled>No transaction</button>
 <button class="btn-primary" id="deploySignBtn" type="button">Deployment unavailable</button>
 </div>
 <p class="opsHint" id="deployStatusHint">No real compiler and ecosystem wallet adapter are configured. Deployment is blocked; no simulated deployment will be recorded.</p>
@@ -868,7 +807,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <p class="view__lede">Source verification confirms the deployed bytecode matches the reviewed source &mdash; pending until broadcast.</p>
 </div>
 <div class="fieldGrid">
-<div class="field"><dt>Explorer</dt><dd>Basescan<span>Base Sepolia</span></dd></div>
+<div class="field"><dt>Explorer</dt><dd>Unavailable<span>No deployment</span></dd></div>
 <div class="field"><dt>Strategy</dt><dd>Full source<span>Standard JSON input</span></dd></div>
 <div class="field"><dt>Status</dt><dd id="verifStatusField">Pending<span>Awaiting deployment</span></dd></div>
 </div>
@@ -897,60 +836,9 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 </div>
 </section>
 <!-- Monitoring -->
-<section class="view" id="view-monitoring">
-<div class="view__intro">
-<h1 class="view__title">Live Monitoring</h1>
-<p class="view__lede">Real-time telemetry, transaction event streams, and invariant verification running on Base Sepolia.</p>
-</div>
-<div id="monitoringActiveView">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.8rem">
-<div style="display:flex;align-items:center;gap:.6rem">
-<span class="walletDot" style="width:10px;height:10px"></span>
-<b style="font-size:.9rem">Live Stream Active</b>
-<span class="statusTag statusTag--resolved" id="monBlockTag">Block #18,443,120</span>
-</div>
-<div style="display:flex;gap:.5rem">
-<button class="btn-ghost" id="btnSimulateAnomaly" type="button" style="padding:.38rem .75rem;font-size:.74rem">Simulate Anomaly</button>
-<button class="btn-ghost" id="btnTogglePause" type="button" style="padding:.38rem .75rem;font-size:.74rem">Pause Vault</button>
-</div>
-</div>
-<div class="testGrid" style="margin-bottom:1.5rem">
-<div class="testCard ok"><b id="monTvl">$1,540,820</b><span>TVL (USDC)</span></div>
-<div class="testCard ok"><b id="monSharePrice">1.0428 USDC</b><span>Share Price</span></div>
-<div class="testCard ok"><b id="monLatency">22ms</b><span>RPC Latency</span></div>
-<div class="testCard ok"><b id="monTxs">142</b><span>24h Transactions</span></div>
-</div>
-<div class="docBlock">
-<h3>Live On-Chain Event Stream (Base Sepolia)</h3>
-<div class="tableWrap">
-<table class="dataTable">
-<thead><tr><th>Time</th><th>Event</th><th>Caller</th><th>Amount</th><th>Status</th></tr></thead>
-<tbody id="monTxTable">
-<tr><td class="tblMuted">Just now</td><td>Deposit</td><td class="mono">0x8a92&hellip;11</td><td>15,000 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
-<tr><td class="tblMuted">14s ago</td><td>Claim</td><td class="mono">0x3f21&hellip;cc</td><td>48.20 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
-<tr><td class="tblMuted">42s ago</td><td>Harvest</td><td class="mono">Strategist</td><td>320.00 USDC</td><td><span class="statusTag statusTag--resolved">Success</span></td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</section>
+<section class="view" id="view-monitoring"><div class="view__intro"><h1 class="view__title">Monitoring</h1><p class="view__lede">Monitoring requires a confirmed deployment and connected RPC provider.</p></div><div id="monitoringActiveView"><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap"><b id="monStatus" style="font-size:.9rem">No deployment connected. Live monitoring is unavailable.</b><span class="statusTag" id="monBlockTag">No deployment</span><button class="btn-ghost" id="btnSimulateAnomaly" type="button" disabled>Anomaly simulation unavailable</button><button class="btn-ghost" id="btnTogglePause" type="button" disabled>Pause unavailable</button></div><div class="testGrid"><div class="testCard"><b id="monTvl">—</b><span>TVL</span></div><div class="testCard"><b id="monSharePrice">—</b><span>Share price</span></div><div class="testCard"><b id="monLatency">—</b><span>RPC latency</span></div><div class="testCard"><b id="monTxs">—</b><span>Transactions</span></div></div><div class="docBlock"><h3>On-chain event stream</h3><div class="tableWrap"><table class="dataTable"><thead><tr><th>Time</th><th>Event</th><th>Caller</th><th>Amount</th><th>Status</th></tr></thead><tbody id="monTxTable"><tr><td colspan="5" class="tblMuted">No events available.</td></tr></tbody></table></div></div></div></section>
 <!-- Audit Trail -->
-<section class="view" id="view-audit">
-<div class="view__intro">
-<h1 class="view__title">Audit Trail</h1>
-<p class="view__lede">Every action is attributable to an actor, agent or model, with an execution ID linking back to its evidence.</p>
-</div>
-<div class="auditList">
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Coder Agent</b><p>Generated VaultCore.sol, ShareToken.sol and RewardsDistributor.sol from specification v1.</p><span class="mono">exec_51ac4d1e</span></div><span class="auditItem__time">3d ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Build Worker</b><p>Compiled with solc 0.8.26 in an isolated worker. Result: success.</p><span class="mono">exec_51ad2f90</span></div><span class="auditItem__time">3d ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Security Agent</b><p>Ran static analysis and adversarial review. Found 4 issues &mdash; 1 High, 2 Low, 1 Info.</p><span class="mono">exec_6b12290a</span></div><span class="auditItem__time">2d ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Auto-fix Agent</b><p>Applied patch #1 (reentrancy guard) and patch #2 (donation-attack mitigation). Both accepted.</p><span class="mono">exec_6b19ffa2</span></div><span class="auditItem__time">2d ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="5.5" r="2.5"></circle><path d="M4 15c.9-3.4 3.4-5 5-5s4.1 1.6 5 5"></path></svg></span><div style="flex:1"><b>Alex Rivera &middot; Owner</b><p>Reviewed and locked specification v3.</p><span class="mono">exec_712a44c0</span></div><span class="auditItem__time">1d ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Simulation Worker</b><p>Ran the fork simulation suite &mdash; 4 of 4 scenarios passed.</p><span class="mono">exec_88f0ab31</span></div><span class="auditItem__time">12h ago</span></div>
-<div class="auditItem"><span class="auditItem__dot"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 18 18"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 5.5V9l2.6 1.6"></path></svg></span><div style="flex:1"><b>Policy Engine</b><p>Evaluated the security gate &mdash; passed, with one accepted exception on the Medium finding.</p><span class="mono">exec_8f21c9ab</span></div><span class="auditItem__time">12m ago</span></div>
-</div>
-</section>
+<section class="view" id="view-audit"><div class="view__intro"><h1 class="view__title">Audit Trail</h1><p class="view__lede">Actions will be recorded here when persistence is connected.</p></div><div class="auditList"><p class="tblMuted">No recorded actions yet.</p></div></section>
 </div>
 </div>
 <!-- ---- Ops pane (right pane) ---- -->
@@ -977,48 +865,26 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="envLockedCard">
 <div class="envLockedHead">
 <span class="envLockedDot"></span>
-<b id="wsActiveEnvTitle">Base Sepolia (Testnet)</b>
+<b id="wsActiveEnvTitle">No deployment selected</b>
 </div>
 <p class="opsNote" id="opsNote">Target network locked from specification. Change network anytime by asking the Contract Builder Agent in the chat.</p>
 </div>
 </section>
 <section class="opsCard">
 <h3>Project state</h3>
-<ol class="stepper">
-<li class="done">Specification</li>
-<li class="done">Threat model</li>
-<li class="done">Architecture</li>
-<li class="done">Code</li>
-<li class="done">Build</li>
-<li class="done">Test</li>
-<li class="done">Security</li>
-<li class="done">Adversarial review</li>
-<li class="done">Simulation</li>
-<li class="done">Policy gate</li>
-<li class="current">Wallet approval</li>
-<li>Deployment</li>
-<li>Verification</li>
-<li>Monitoring</li>
-</ol>
+<ol class="stepper"><li>Specification</li><li>Threat model</li><li>Architecture</li><li>Code</li><li>Build — not run</li><li>Tests — not run</li><li>Security — not run</li><li>Adversarial review — not run</li><li>Simulation — not run</li><li>Policy gate unavailable</li><li>Wallet approval unavailable</li><li>Deployment unavailable</li><li>Verification unavailable</li><li>Monitoring unavailable</li></ol>
 </section>
 <section class="opsCard">
 <h3>Security gate</h3>
-<ul class="gateList">
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Specification</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Tests</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Security<span>1 exception</span></li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Simulation</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Artifact integrity</li>
-<li><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 18 18"><path d="m4 9.5 3 3 7-7"></path></svg>Policy</li>
-</ul>
+<ul class="gateList"><li>Specification <span>Review required</span></li><li>Tests <span>Not run</span></li><li>Security <span>Not reviewed</span></li><li>Simulation <span>Not run</span></li><li>Artifact integrity <span>No build artifact</span></li><li>Policy <span>Unavailable</span></li></ul>
 </section>
 <section class="opsCard">
 <h3>Deployment preview</h3>
 <dl class="opsKV">
-<div><dt>Target</dt><dd>3 contracts</dd></div>
+<div><dt>Target</dt><dd>No artifact</dd></div>
 <div><dt>Network</dt><dd>Not selected</dd></div>
-<div><dt>Est. cost</dt><dd>~0.014 ETH</dd></div>
-<div><dt>Transaction</dt><dd>3 + 1 call</dd></div>
+<div><dt>Est. cost</dt><dd>Unavailable</dd></div>
+<div><dt>Transaction</dt><dd>Not prepared</dd></div>
 </dl>
 </section>
 <section class="opsCard">
@@ -1028,14 +894,14 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div><b>No compatible wallet</b><span>Connect a supported signing wallet to deploy</span></div>
 </div>
 <div class="opsActions">
-<button class="btn-ghost" id="opsCancelBtn" type="button">Cancel</button>
-<button class="btn-primary" id="opsSignBtn" type="button">Sign &amp; continue</button>
+<button class="btn-ghost" id="opsCancelBtn" type="button" disabled>No transaction</button>
+<button class="btn-primary" id="opsSignBtn" type="button" disabled>Deployment unavailable</button>
 </div>
-<p class="opsHint">Signature required from an authorized wallet. x0a never holds your keys.</p>
+<p class="opsHint">Deployment remains blocked until a real build and supported signing provider are configured.</p>
 </section>
 <section class="opsCard opsCard--muted">
 <h3>Monitoring</h3>
-<p class="opsHint">Activates automatically once this deployment is broadcast and verified.</p>
+<p class="opsHint">Monitoring is unavailable until a real deployment and event source exist.</p>
 </section>
 </div>
 <div hidden="" id="opsPanelChat">
@@ -1079,15 +945,14 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <!-- ============ Status bar ============ -->
 <div class="statusbar" id="statusbar">
 <div class="statusbar__left">
-<span id="statusLang">Solidity</span><span class="sep">&middot;</span><span id="statusLines">244 lines</span><span class="sep statusExtra">&middot;</span><span class="statusExtra">UTF-8</span>
-<span class="statusPill statusPill--ok">Build passing</span>
-<span class="statusPill statusPill--ok">Tests 42/42</span>
+<span id="statusLang">No build</span><span class="sep">&middot;</span><span id="statusLines">No artifact</span><span class="sep statusExtra">&middot;</span><span class="statusExtra">UTF-8</span>
+<span class="statusPill">Build not run</span>
+<span class="statusPill">Tests not run</span>
 </div>
 <div class="statusbar__right">
-<span class="mono" style="color:var(--muted)">exec_8f21c9ab</span>
+<span class="mono" style="color:var(--muted)">No execution</span>
 <span class="sep">&middot;</span>
-<span>Base Sepolia</span>
-<span class="branchBadge branchBadge--sm">spec v3 &middot; locked</span>
+<span>No deployment</span>
 </div>
 </div>
 </div>
@@ -1101,33 +966,17 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
     <div class="modal__head">
       <div>
         <h2>Notifications</h2>
-        <p>Real-time security audits, contract verifications, and deployment gates.</p>
+        <p>Workspace notices. Chain monitoring and verification are not connected.</p>
       </div>
       <button class="modal__close" id="notifClose" aria-label="Close notifications">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
       </button>
     </div>
     <div class="modal__body" style="padding:0;max-height:420px">
-      <ul class="notif__list" id="notifListModal" style="border-top:0;padding:0.4rem">
-        <li class="nitem" data-tone="ok">
-          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="m5 10 3.2 3.2L15 6.5"></path></svg></span>
-          <span class="nitem__body"><span class="nitem__title">Security gate passed</span><span class="nitem__text">Yield Vault cleared spec, tests, security, simulation and policy.</span></span>
-          <span class="nitem__time">12m</span>
-        </li>
-        <li class="nitem" data-tone="warn">
-          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><path d="M10 3.6 17.5 16H2.5Z"></path><path d="M10 8.2v3.4"></path><circle cx="10" cy="14.1" fill="currentColor" r=".2"></circle></svg></span>
-          <span class="nitem__body"><span class="nitem__title">Wallet approval requested</span><span class="nitem__text">Deployment to Base Sepolia is ready and waiting on your Safe.</span></span>
-          <span class="nitem__time">12m</span>
-        </li>
-        <li class="nitem">
-          <span class="nitem__icon"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" viewbox="0 0 20 20"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.5v4l2.6 1.6"></path></svg></span>
-          <span class="nitem__body"><span class="nitem__title">Fork simulation completed</span><span class="nitem__text">4 scenarios passed on a pinned Base mainnet fork.</span></span>
-          <span class="nitem__time">1h</span>
-        </li>
-      </ul>
+      <ul class="notif__list" id="notifListModal" style="border-top:0;padding:0.4rem"><li class="nitem"><span class="nitem__body"><span class="nitem__title">No notifications</span><span class="nitem__text">There are no persisted workspace events yet.</span></span></li></ul>
     </div>
     <div class="modal__foot">
-      <span style="font-size:0.78rem;color:var(--muted)">Protocol telemetry stream active</span>
+      <span style="font-size:0.78rem;color:var(--muted)">No live telemetry source connected</span>
       <button class="btn-ghost" id="notifFootClose" type="button">Close</button>
     </div>
   </div>

@@ -1008,21 +1008,7 @@ export function initWorkspace(
     } catch (err) {
       if (typingEl) typingEl.remove();
 
-      var lowerText = text.toLowerCase();
-      if (lowerText.indexOf('mainnet') > -1) {
-        setWorkspaceNetwork('Base Mainnet (Production)', 'Mainnet');
-      } else if (lowerText.indexOf('devnet') > -1 || lowerText.indexOf('anvil') > -1 || lowerText.indexOf('local') > -1) {
-        setWorkspaceNetwork('Local Anvil (Devnet)', 'Devnet');
-      } else if (lowerText.indexOf('testnet') > -1 || lowerText.indexOf('sepolia') > -1) {
-        setWorkspaceNetwork('Base Sepolia (Testnet)', 'Testnet');
-      }
-
-      var fallbackReply = 'I have received your request. In strict accordance with role boundaries, smart contract changes and verification suites have been reviewed.';
-      if (lowerText.indexOf('fee') > -1) {
-        fallbackReply = 'I have prepared a 25 bps (0.25%) withdrawal fee routed to feeTreasury. This protects protocol solvency and prevents zero-cost atomic arbitrage.';
-      } else if (lowerText.indexOf('pause') > -1) {
-        fallbackReply = 'Pausable circuit breaker prepared. The pause() function can be triggered instantaneously by GUARDIAN_ROLE, while unpause() is restricted to DEFAULT_ADMIN_ROLE.';
-      }
+      var fallbackReply = 'The agent service is unavailable. No network change, code edit, or verification was performed.';
       agentLog.insertAdjacentHTML('beforeend', bubbleHTML('agent', '<p>' + fallbackReply + '</p>', activeAgent === 'Auto-Route' ? 'Contract Builder Agent' : activeAgent));
       agentLog.scrollTop = agentLog.scrollHeight;
     }
@@ -1123,53 +1109,15 @@ export function initWorkspace(
     if (buildStatusMsg) buildStatusMsg.textContent = 'No Solidity compiler is installed in this application. No build artifact has been produced.';
   }
 
-  // 2. Real-Time Test Suite Runner
+  // Test execution is unavailable until this project has a real test harness.
   var btnRunTests = $('#btnRunTests');
-  var testConsoleLog = $('#testConsoleLog');
   var testsStatusMsg = $('#testsStatusMsg');
   if (btnRunTests) {
-    btnRunTests.addEventListener('click', function() {
-      btnRunTests.disabled = true;
-      btnRunTests.textContent = 'Running test suite...';
-      var activePrimaryName = (currentProject && currentProject.title) ? currentProject.title.replace(/[^a-zA-Z0-9]/g, '') : 'VaultCore';
-      if (!activePrimaryName) activePrimaryName = 'VaultCore';
-      if (testConsoleLog) {
-        testConsoleLog.style.display = 'block';
-        testConsoleLog.innerHTML = '<div style="color:var(--muted)">[0.0s] Compiling test/' + escHtml(activePrimaryName) + '.t.sol...</div>';
-      }
-
-      var testSteps = [
-        '[0.2s] [PASS] test_deposit_mint_shares() (gas: 74102)',
-        '[0.4s] [PASS] test_withdraw_burn_shares() (gas: 68490)',
-        '[0.5s] [PASS] test_reentrancy_protection() (gas: 41200)',
-        '[0.7s] [PASS] test_virtual_shares_donation_mitigation() (gas: 82109)',
-        '[0.9s] [PASS] test_fuzz_deposit_withdraw_invariant(uint256) (runs: 10,000)',
-        '[1.1s] [PASS] test_paused_reverts_deposit() (gas: 21090)',
-        '<div style="color:var(--ok);font-weight:600;margin-top:.4rem">[1.2s] Suite result: ok. 42 passed; 0 failed; 0 skipped; finished in 1.2s</div>'
-      ];
-
-      testSteps.forEach(function(msg, idx) {
-        setTimeout(function() {
-          if (testConsoleLog) {
-            testConsoleLog.innerHTML += '<div>' + msg + '</div>';
-            testConsoleLog.scrollTop = testConsoleLog.scrollHeight;
-          }
-        }, 150 * (idx + 1));
-      });
-
-      setTimeout(function() {
-        btnRunTests.disabled = false;
-        btnRunTests.textContent = 'Run test suite';
-        if (testsStatusMsg) testsStatusMsg.textContent = '42/42 tests passed just now (100% pass rate)';
-        var unitCard = $('#testCardUnit');
-        if (unitCard) unitCard.textContent = '28/28';
-        var intCard = $('#testCardInt');
-        if (intCard) intCard.textContent = '9/9';
-
-        addAuditTrailEntry('Test Runner', 'Executed 42 unit, integration, and fuzz tests for ' + activePrimaryName + '. 100% pass rate in Foundry Cancun fork runtime.');
-      }, 1500);
-    });
+    btnRunTests.disabled = true;
+    btnRunTests.textContent = 'Test runner unavailable';
+    btnRunTests.title = 'No executable Foundry test harness is configured.';
   }
+  if (testsStatusMsg) testsStatusMsg.textContent = 'Not run. Configure a real test harness before relying on test results.';
 
   // 3. Real-Time Security Auditor Agent Scanner
   var btnRunSecurity = $('#btnRunSecurity');
@@ -1207,6 +1155,8 @@ export function initWorkspace(
               '<td><span class="statusTag ' + statusClass + '"><i></i>' + escHtml(item.status || 'Open') + '</span></td>' +
               '</tr>';
           }).join('');
+        } else if (securityTableBody) {
+          securityTableBody.innerHTML = '<tr><td colspan="5" class="tblMuted">Review completed. No findings were returned; this is not a deterministic policy decision.</td></tr>';
         }
 
         var secCount = $('.enode[data-view="security"] .ecount');
@@ -1217,17 +1167,21 @@ export function initWorkspace(
         btnRunSecurity.disabled = false;
         btnRunSecurity.textContent = 'Run security scan';
         if (securityScanMsg) {
-          securityScanMsg.textContent = 'Security Auditor Agent review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). Gate score: ' + (auditData.overallScore || 95) + '/100. Policy gate: Passed';
+          securityScanMsg.textContent = 'Review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). Advisory score: ' + (auditData.overallScore || '—') + '/100. Deterministic policy gate: unavailable.';
         }
+        var policyStatus = $('#policyGateStatus');
+        if (policyStatus) policyStatus.textContent = 'No deterministic policy decision';
 
-        addAuditTrailEntry('Security Auditor Agent', 'Completed adversarial security review (' + (auditData.findings ? auditData.findings.length : 0) + ' findings analyzed). Gate passed.');
+        addAuditTrailEntry('Security Auditor Agent', 'Review completed (' + (auditData.findings ? auditData.findings.length : 0) + ' findings). No deterministic policy decision was made.');
 
       } catch (err) {
         console.error('Security audit error:', err);
         btnRunSecurity.disabled = false;
         btnRunSecurity.textContent = 'Run security scan';
-        if (securityScanMsg) securityScanMsg.textContent = 'Scan completed (0 Critical vulnerabilities). Policy gate: Passed';
-        addAuditTrailEntry('Security Auditor Agent', 'AST and invariant review completed. Policy gate passed.');
+        if (securityScanMsg) securityScanMsg.textContent = 'Audit unavailable or failed. No result was produced; deployment gate remains closed.';
+        var policyStatus = $('#policyGateStatus');
+        if (policyStatus) policyStatus.textContent = 'Closed — audit result unavailable';
+        if (securityTableBody) securityTableBody.innerHTML = '<tr><td colspan="5" class="tblMuted">Audit failed or unavailable. No findings or policy decision were produced.</td></tr>';
       }
     });
   }
@@ -1270,26 +1224,16 @@ export function initWorkspace(
     });
   });
 
-  // 5. Real-Time Fork Simulations Runner
+  // Fork simulation requires an actual Foundry fork runner; never report fixture data as execution.
   var btnRunSimulations = $('#btnRunSimulations');
   var simStatusMsg = $('#simStatusMsg');
+  var simFooter = $('#simFooter');
   if (btnRunSimulations) {
-    btnRunSimulations.addEventListener('click', function() {
-      btnRunSimulations.disabled = true;
-      btnRunSimulations.textContent = 'Executing fork scenarios...';
-      if (simStatusMsg) simStatusMsg.textContent = 'Snapshotting Base mainnet state at block #18,442,910...';
-
-      setTimeout(function() {
-        btnRunSimulations.disabled = false;
-        btnRunSimulations.textContent = 'Re-run fork simulations';
-        if (simStatusMsg) simStatusMsg.textContent = '4 of 4 scenarios passed on Base mainnet fork (just now)';
-        var simFooter = $('#simFooter');
-        if (simFooter) simFooter.textContent = '4 of 4 scenarios passed · Simulated just now in Foundry fork runtime';
-
-        addAuditTrailEntry('Simulation Worker', 'Executed 4 mainnet fork scenarios. All invariants preserved.');
-      }, 1200);
-    });
+    btnRunSimulations.disabled = true;
+    btnRunSimulations.textContent = 'Simulation unavailable';
   }
+  if (simStatusMsg) simStatusMsg.textContent = 'Not run. No fork simulation runner is configured.';
+  if (simFooter) simFooter.textContent = 'No simulation evidence is available.';
 
   var deploySignBtn = $('#deploySignBtn');
   var opsSignBtn = $('#opsSignBtn');
@@ -1342,99 +1286,16 @@ export function initWorkspace(
     });
   });
 
-  // 9. Real-Time Live Monitoring Stream
-  var liveBlockNumber = 18443120;
-  var liveTxCount = 142;
-  var vaultPaused = false;
-
-  function startMonitoringTicker() {
-    if (window._x0aMonInterval) clearInterval(window._x0aMonInterval);
-
-    window._x0aMonInterval = setInterval(function() {
-      liveBlockNumber++;
-      liveTxCount++;
-      var blockTag = $('#monBlockTag');
-      if (blockTag && !vaultPaused) {
-        blockTag.textContent = 'Block #' + liveBlockNumber.toLocaleString();
-      }
-
-      var latencyEl = $('#monLatency');
-      if (latencyEl) latencyEl.textContent = (18 + Math.floor(Math.random() * 11)) + 'ms';
-
-      var txsEl = $('#monTxs');
-      if (txsEl) txsEl.textContent = String(liveTxCount);
-
-      // Append live simulated event every ~6 seconds
-      if (liveBlockNumber % 2 === 0) {
-        var txTable = $('#monTxTable');
-        if (txTable) {
-          var events = [
-            { type: 'Deposit', amount: (1000 + Math.floor(Math.random() * 25000)).toLocaleString() + ' USDC', caller: '0x' + Math.random().toString(16).slice(2, 6) + '...' + Math.random().toString(16).slice(2, 4) },
-            { type: 'Claim', amount: (12 + Math.floor(Math.random() * 85)).toFixed(2) + ' USDC', caller: '0x' + Math.random().toString(16).slice(2, 6) + '...' + Math.random().toString(16).slice(2, 4) },
-            { type: 'Harvest', amount: (150 + Math.floor(Math.random() * 450)).toFixed(2) + ' USDC', caller: 'Strategist' }
-          ];
-          var ev = events[Math.floor(Math.random() * events.length)];
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td class="tblMuted">Just now</td><td>' + ev.type + '</td><td class="mono">' + ev.caller + '</td><td>' + ev.amount + '</td><td><span class="statusTag statusTag--resolved">Success</span></td>';
-          txTable.insertBefore(tr, txTable.firstChild);
-          if (txTable.children.length > 6) {
-            txTable.removeChild(txTable.lastChild);
-          }
-        }
-      }
-    }, 2800);
-  }
-  startMonitoringTicker();
-
-  // Anomaly Simulation & Pause buttons
-  var btnSimulateAnomaly = $('#btnSimulateAnomaly');
-  var btnTogglePause = $('#btnTogglePause');
-  var incidentsEmpty = $('#incidentsEmpty');
-  var incidentsList = $('#incidentsList');
-
-  if (btnSimulateAnomaly) {
-    btnSimulateAnomaly.addEventListener('click', function() {
-      var incidentId = 'INC-' + Math.floor(100 + Math.random() * 900);
-      if (incidentsEmpty) incidentsEmpty.style.display = 'none';
-      if (incidentsList) {
-        incidentsList.style.display = 'flex';
-        var item = document.createElement('div');
-        item.className = 'opsCard';
-        item.style.borderColor = 'var(--warn)';
-        item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">' +
-          '<b style="color:var(--warn)">' + incidentId + ': Oracle Price Deviation Flagged</b>' +
-          '<span class="statusTag statusTag--open">Investigating</span>' +
-          '</div>' +
-          '<p style="font-size:.78rem;color:var(--muted);line-height:1.55;margin-bottom:.7rem">Secondary USDC feed reported 0.988 deviation. Circuit breaker active. Protocol invariants protected.</p>' +
-          '<div style="display:flex;gap:.5rem">' +
-          '<button class="btn-primary btnResolveIncident" type="button" style="padding:.35rem .75rem;font-size:.74rem">Acknowledge &amp; Clear Incident</button>' +
-          '</div>';
-        incidentsList.insertBefore(item, incidentsList.firstChild);
-
-        item.querySelector('.btnResolveIncident').addEventListener('click', function() {
-          item.remove();
-          if (!incidentsList.children.length && incidentsEmpty) incidentsEmpty.style.display = '';
-          addAuditTrailEntry('Alex Rivera · Owner', 'Acknowledged and cleared incident ' + incidentId + '. Invariants restored.');
-        });
-      }
-
-      addAuditTrailEntry('Invariant Monitor', 'Anomaly detected: ' + incidentId + ' (USDC secondary oracle deviation).');
-      openView('incidents');
-    });
-  }
-
-  if (btnTogglePause) {
-    btnTogglePause.addEventListener('click', function() {
-      vaultPaused = !vaultPaused;
-      btnTogglePause.textContent = vaultPaused ? 'Unpause Vault' : 'Pause Vault';
-      var blockTag = $('#monBlockTag');
-      if (blockTag) {
-        blockTag.className = vaultPaused ? 'statusTag statusTag--open' : 'statusTag statusTag--resolved';
-        blockTag.textContent = vaultPaused ? 'Vault Paused (Emergency Stop)' : 'Block #' + liveBlockNumber.toLocaleString();
-      }
-      addAuditTrailEntry('Guardian Multisig', vaultPaused ? 'Emergency stop triggered: VaultCore deposits/withdrawals paused.' : 'Emergency stop lifted: VaultCore unpaused.');
-    });
-  }
+  // Monitoring and protocol controls must be backed by a deployed contract and RPC source.
+  var monitorStatus = $('#monStatus');
+  if (monitorStatus) monitorStatus.textContent = 'No deployment connected. Live monitoring is unavailable.';
+  ['btnSimulateAnomaly', 'btnTogglePause'].forEach(function(id) {
+    var button = $('#' + id);
+    if (button) {
+      button.disabled = true;
+      button.title = 'Requires a real deployment and connected chain provider.';
+    }
+  });
 
   // 10. Real-Time Copy to Clipboard with Visual Tooltip Feedback
   var wsCopyBtn = $('#wsCopyBtn');
