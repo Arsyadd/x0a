@@ -1579,33 +1579,7 @@ export function initWorkspace(
   var dynamicNetworks = initialRequest.dynamicNetworks || [];
   var selectedTarget = null;
 
-  // Reference catalog for specification authoring. A catalog entry is selectable
-  // even when this app has no signing adapter for it; deployment is gated below.
-  var networkCatalog = {
-    Ethereum: [['Ethereum','Mainnet','1'],['Ethereum','Sepolia','11155111'],['Ethereum','Holesky','17000']],
-    Solana: [['Solana','Mainnet','mainnet-beta'],['Solana','Devnet','devnet'],['Solana','Testnet','testnet']],
-    Sei: [['Sei','Mainnet','1329'],['Sei','Testnet','1328']], Polygon: [['Polygon','Mainnet','137'],['Polygon','Amoy','80002']],
-    Arbitrum: [['Arbitrum','Mainnet','42161'],['Arbitrum','Sepolia','421614']], Optimism: [['Optimism','Mainnet','10'],['Optimism','Sepolia','11155420']],
-    Base: [['Base','Mainnet','8453'],['Base','Sepolia','84532']], Avalanche: [['Avalanche','Mainnet','43114'],['Avalanche','Fuji','43113']],
-    BNB: [['BNB Chain','Mainnet','56'],['BNB Chain','Testnet','97']], Fantom: [['Sonic','Mainnet','146'],['Fantom','Opera','250']],
-    Gnosis: [['Gnosis','Mainnet','100']], Celo: [['Celo','Mainnet','42220'],['Celo','Sepolia','11142220']], zkSync: [['zkSync Era','Mainnet','324'],['zkSync Era','Sepolia','300']],
-    Linea: [['Linea','Mainnet','59144'],['Linea','Sepolia','59141']], Scroll: [['Scroll','Mainnet','534352'],['Scroll','Sepolia','534351']], Mantle: [['Mantle','Mainnet','5000'],['Mantle','Sepolia','5003']],
-    Starknet: [['Starknet','Mainnet','SN_MAIN'],['Starknet','Sepolia','SN_SEPOLIA']], Sui: [['Sui','Mainnet','mainnet'],['Sui','Testnet','testnet']],
-    Aptos: [['Aptos','Mainnet','mainnet'],['Aptos','Testnet','testnet']], Cosmos: [['Cosmos','Hub','cosmoshub-4'],['Osmosis','Mainnet','osmosis-1']],
-    NEAR: [['NEAR','Mainnet','mainnet'],['NEAR','Testnet','testnet']], Polkadot: [['Polkadot','Asset Hub','polkadot'],['Kusama','Asset Hub','kusama']],
-    TON: [['TON','Mainnet','mainnet'],['TON','Testnet','testnet']], TRON: [['TRON','Mainnet','mainnet'],['TRON','Nile','nile']],
-    Algorand: [['Algorand','Mainnet','mainnet'],['Algorand','Testnet','testnet']], Cardano: [['Cardano','Mainnet','mainnet'],['Cardano','Preprod','preprod']],
-    Tezos: [['Tezos','Mainnet','mainnet'],['Tezos','Ghostnet','ghostnet']], Hedera: [['Hedera','Mainnet','mainnet'],['Hedera','Testnet','testnet']],
-    InternetComputer: [['Internet Computer','Mainnet','ic']], MultiversX: [['MultiversX','Mainnet','1'],['MultiversX','Testnet','T']],
-    Injective: [['Injective','Mainnet','injective-1'],['Injective','Testnet','injective-888']], Oasis: [['Oasis','Mainnet','23294'],['Oasis','Testnet','23295']],
-    Kava: [['Kava','Mainnet','2222'],['Kava','Testnet','2221']], Cronos: [['Cronos','Mainnet','25'],['Cronos','Testnet','338']], Moonbeam: [['Moonbeam','Mainnet','1284'],['Moonbeam','Moonbase Alpha','1287']],
-    Harmony: [['Harmony','Mainnet','1666600000']], Aurora: [['Aurora','Mainnet','1313161554']], Ronin: [['Ronin','Mainnet','2020']],
-    Immutable: [['Immutable zkEVM','Mainnet','13371'],['Immutable zkEVM','Testnet','13473']], Zora: [['Zora','Mainnet','7777777'],['Zora','Sepolia','999999999']], Blast: [['Blast','Mainnet','81457'],['Blast','Sepolia','168587773']],
-    Mode: [['Mode','Mainnet','34443'],['Mode','Sepolia','919']], Mantle: [['Mantle','Mainnet','5000'],['Mantle','Sepolia','5003']],
-    Berachain: [['Berachain','Mainnet','80094'],['Berachain','Bepolia','80069']], Abstract: [['Abstract','Mainnet','2741'],['Abstract','Testnet','11124']],
-    World: [['World Chain','Mainnet','480'],['World Chain','Sepolia','4801']], HyperEVM: [['HyperEVM','Mainnet','999'],['HyperEVM','Testnet','998']],
-    XLayer: [['X Layer','Mainnet','196'],['X Layer','Sepolia','195']], Monad: [['Monad','Mainnet','143'],['Monad','Testnet','10143']],
-  };
+  // Dynamic's configured network map is the source of truth for these selectors.
 
   function appendSelectOption(select, value, label, placeholder){
     var option = document.createElement('option');
@@ -1634,27 +1608,12 @@ export function initWorkspace(
     var ecosystem = targetEcosystemSelect.value;
     targetNetworkSelect.replaceChildren();
     appendSelectOption(targetNetworkSelect, '', 'Choose chain / network…', true);
-    (networkCatalog[ecosystem] || []).forEach(function(entry){
-      var chainName = entry[0], networkName = entry[1], chainId = entry[2];
-      var live = dynamicNetworks.find(function(n){ return n.ecosystem.toLowerCase() === ecosystem.toLowerCase() && String(n.chainId) === chainId; });
-      var item = live ? Object.assign({}, live, { chainName: chainName, networkName: networkName, catalogNetwork: true }) : {
-        id: 'catalog:' + ecosystem + ':' + chainId, ecosystem: ecosystem, chainName: chainName,
-        networkName: networkName, chain: chainId, chainId: chainId, networkId: chainId,
-        isTestnet: /test|dev|sepolia|amoy|holesky|fuji|ghost|preprod|bepolia/i.test(networkName), catalogNetwork: true,
-      };
-      var existing = allTargetNetworks.findIndex(function(n){ return n.id === item.id; });
-      if (existing < 0) allTargetNetworks.push(item); else allTargetNetworks[existing] = item;
-      var dynamicMatch = !!live;
-      appendSelectOption(targetNetworkSelect, item.id, chainName + ' — ' + networkName + (dynamicMatch ? '' : ' (specification only)'));
-    });
-    // Keep provider-configured chains visible even when the curated registry has
-    // not yet been extended. Their provider metadata remains attached for later use.
-    dynamicNetworks.filter(function(n){ return n.ecosystem.toLowerCase() === ecosystem.toLowerCase(); }).forEach(function(n){
-      if (targetNetworkSelect.querySelector('option[value="' + CSS.escape(n.id) + '"]')) return;
-      var chainName = n.chainName || (ecosystem + ' ' + n.chainId);
-      var networkName = n.networkName || (n.isTestnet ? 'Testnet' : 'Mainnet');
-      allTargetNetworks.push(n);
-      appendSelectOption(targetNetworkSelect, n.id, chainName + ' — ' + networkName);
+    dynamicNetworks.filter(function(network){ return network.ecosystem === ecosystem; }).forEach(function(network){
+      var tier = network.networkName || '';
+      var suffix = tier.match(/(?:^|[\s(\-–—])(?:mainnet|testnet|devnet|sepolia|amoy|holesky|fuji|goerli|mumbai|test)(?:[\s)]*)$/i);
+      if (suffix) tier = suffix[0].replace(/[\s(\-–—)]+/g, '').trim();
+      else if (!tier || tier.toLowerCase() === (network.chainName || '').toLowerCase()) tier = network.isTestnet ? 'Testnet' : 'Mainnet';
+      appendSelectOption(targetNetworkSelect, network.id, (network.chainName || ecosystem) + ' — ' + tier);
     });
     updateSelectedTarget();
   }
@@ -1664,15 +1623,19 @@ export function initWorkspace(
     var targetNotice = $('#targetNetworkNotice');
     targetEcosystemSelect.replaceChildren();
     appendSelectOption(targetEcosystemSelect, '', 'Choose ecosystem…', true);
-    var ecosystems = Array.from(new Set(Object.keys(networkCatalog).concat(dynamicNetworks.map(function(network){ return network.ecosystem; }))));
+    var ecosystems = Array.from(new Set(dynamicNetworks.map(function(network){ return network.ecosystem; }))).sort();
     if (targetNotice) {
       targetNotice.textContent = ecosystems.length
-        ? 'Networks marked specification only can be specified, but cannot be deployed until a compatible wallet adapter is available.'
-        : 'Choose ecosystem and network. Deployment requires a compatible signing wallet and compiler.';
+        ? 'Networks shown here are configured in this Dynamic environment.'
+        : 'No ecosystems or networks are configured in this Dynamic environment. Enable them in the Dynamic dashboard and reload.';
     }
     var promptText = (initialRequest.prompt || initialPrompt || '').toLowerCase();
+    var ecosystemAliases = { EVM: ['ethereum', 'evm'], SVM: ['solana', 'svm'], Bitcoin: ['bitcoin', 'btc'] };
     var inferredEcosystem = initialRequest.ecosystemHint || ecosystems.find(function(name) {
-      return new RegExp('(^|[^a-z0-9])' + name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(promptText);
+      var aliases = ecosystemAliases[name] || [name.toLowerCase()];
+      return aliases.some(function(alias) {
+        return new RegExp('(^|[^a-z0-9])' + alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(promptText);
+      });
     });
     ecosystems.forEach(function(ecosystem){
       var option = document.createElement('option');

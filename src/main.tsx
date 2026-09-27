@@ -26,16 +26,6 @@ createRoot(document.getElementById('root')!).render(
             opacity: 1 !important;
           }
         `,
-        overrides: {
-          solNetworks: [],
-          bitcoinNetworks: [],
-          aleoNetworks: [],
-          stellarNetworks: [],
-          tonNetworks: [],
-          tronNetworks: [],
-          aptosNetworks: [],
-          cosmosNetworks: [],
-        },
       }}
     >
       <App />
