@@ -644,7 +644,7 @@
 .x0a-workspace-root .onboard__dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);transition:background .2s}
 .x0a-workspace-root .onboard__dot.is-done{background:var(--ok)}
 .x0a-workspace-root .onboard__dot.is-current{background:var(--blue-soft);box-shadow:0 0 0 3px var(--blue-dim)}
-.x0a-workspace-root .onboardTarget{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem;max-width:46rem;width:calc(100% - 2 * var(--edge));margin:.75rem auto 0;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.x0a-workspace-root .onboardTarget{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;max-width:46rem;width:calc(100% - 2 * var(--edge));margin:.75rem auto 0;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .x0a-workspace-root .onboardTarget label{display:grid;gap:.3rem;min-width:0}
 .x0a-workspace-root .onboardTarget label span{font-size:.66rem;color:var(--muted)}
 .x0a-workspace-root .onboardTarget select{width:100%;min-width:0;padding:.48rem 1.6rem .48rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--fg);font:inherit;font-size:.72rem;text-overflow:ellipsis}

@@ -17,6 +17,15 @@ createRoot(document.getElementById('root')!).render(
       settings={{
         environmentId: dynamicEnvironmentId,
         walletConnectors: [EthereumWalletConnectors],
+        cssOverrides: `
+          .overlay-card-base__overlay {
+            background-color: rgba(0, 0, 0, 0.78) !important;
+          }
+          .overlay-card-base__content {
+            background-color: #101014 !important;
+            opacity: 1 !important;
+          }
+        `,
         overrides: {
           solNetworks: [],
           bitcoinNetworks: [],

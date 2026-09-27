@@ -1118,33 +1118,9 @@ export function initWorkspace(
   var buildsTableBody = $('#buildsTableBody');
   var buildStatusMsg = $('#buildStatusMsg');
   if (btnRunBuild) {
-    btnRunBuild.addEventListener('click', function() {
-      btnRunBuild.disabled = true;
-      btnRunBuild.textContent = 'Compiling with solc 0.8.26...';
-      if (buildStatusMsg) buildStatusMsg.textContent = 'Optimizing bytecode (runs: 200, EVM Cancun)...';
-
-      setTimeout(function() {
-        var randHex = Math.random().toString(16).slice(2, 8);
-        var randArt = '0x' + Math.random().toString(16).slice(2, 8) + '...' + Math.random().toString(16).slice(2, 6);
-        var newRow = document.createElement('tr');
-        newRow.innerHTML = '<td class="mono">build_' + randHex + '</td>' +
-          '<td class="tblMuted">solc 0.8.26</td>' +
-          '<td><span class="statusTag statusTag--resolved"><i></i>Passed</span></td>' +
-          '<td class="tblMuted">1.4s</td>' +
-          '<td class="mono">' + randArt + '</td>';
-        if (buildsTableBody) buildsTableBody.insertBefore(newRow, buildsTableBody.firstChild);
-
-        btnRunBuild.disabled = false;
-        btnRunBuild.textContent = 'Trigger new build';
-        if (buildStatusMsg) buildStatusMsg.textContent = 'Build build_' + randHex + ' succeeded just now (1.4s)';
-        var buildPill = $('.statusPill--ok');
-        if (buildPill) buildPill.textContent = 'Build passing (v' + randHex + ')';
-
-        var activePrimaryName = (currentProject && currentProject.title) ? currentProject.title.replace(/[^a-zA-Z0-9]/g, '') : 'VaultCore';
-        if (!activePrimaryName) activePrimaryName = 'VaultCore';
-        addAuditTrailEntry('Build Worker', 'Compiled ' + activePrimaryName + ' and dependencies with solc 0.8.26. Artifact: ' + randArt, 'exec_' + randHex);
-      }, 1000);
-    });
+    btnRunBuild.disabled = true;
+    btnRunBuild.textContent = 'Compiler unavailable';
+    if (buildStatusMsg) buildStatusMsg.textContent = 'No Solidity compiler is installed in this application. No build artifact has been produced.';
   }
 
   // 2. Real-Time Test Suite Runner
@@ -1315,81 +1291,18 @@ export function initWorkspace(
     });
   }
 
-  // 6. Real-Time Deployment & Multisig Wallet Signature Simulation
-  function triggerWalletDeployment() {
-    var signBtns = [$('#deploySignBtn'), $('#opsSignBtn')].filter(Boolean);
-    signBtns.forEach(function(b) {
-      b.disabled = true;
-      b.textContent = 'Signing in Safe (2-of-3)...';
-    });
-
-    var statusHint = $('#deployStatusHint');
-    if (statusHint) statusHint.textContent = 'Multisig key authorization received. Broadcasting transaction...';
-
-    setTimeout(function() {
-      signBtns.forEach(function(b) { b.textContent = 'Broadcasting to Base Sepolia...'; });
-
-      setTimeout(function() {
-        signBtns.forEach(function(b) { b.textContent = 'Confirming Block #18,443,120...'; });
-
-        setTimeout(function() {
-          signBtns.forEach(function(b) {
-            b.textContent = 'Deployed & Live';
-            b.disabled = true;
-          });
-
-          // Update Pending Deployment Card
-          var title = $('#deployCardTitle');
-          if (title) title.textContent = 'Active Deployment (Live)';
-          var targetText = $('#deployTargetText');
-          if (targetText) targetText.innerHTML = 'VaultCore (0x7a23...92b1) <span class="statusTag statusTag--resolved">Verified</span>';
-          if (statusHint) statusHint.innerHTML = 'Live on Base Sepolia! Contract address: <span class="mono">0x7a23C4a7f05252fD8E9234125b2fA554b41982b1</span>. Monitoring is now active.';
-
-          // Update Stepper
-          var stepperItems = $$('.stepper li');
-          if (stepperItems.length >= 14) {
-            stepperItems[10].className = 'done'; // Wallet approval
-            stepperItems[11].className = 'done'; // Deployment
-            stepperItems[12].className = 'done'; // Verification
-            stepperItems[13].className = 'current'; // Monitoring
-          }
-
-          // Update verification view
-          var verifStatus = $('#verifStatusField');
-          if (verifStatus) verifStatus.innerHTML = '<span class="statusTag statusTag--resolved">Verified on Basescan</span>';
-
-          // Update status bar
-          var statLines = $('#statusLines');
-          if (statLines) statLines.textContent = 'Live on Base Sepolia';
-
-          // Add to deployment history table
-          var histTable = $('#deployHistoryTable');
-          if (histTable) {
-            var row = document.createElement('tr');
-            row.innerHTML = '<td>Base Sepolia (VaultCore)</td><td><span class="statusTag statusTag--resolved"><i></i>Deployed &amp; verified</span></td><td class="tblMuted">Just now</td>';
-            histTable.insertBefore(row, histTable.firstChild);
-          }
-
-          addAuditTrailEntry('Alex Rivera · Owner', 'Signed and broadcast Base Sepolia deployment (0x7a23...92b1). Verified on Basescan.');
-
-          // Open Monitoring view and kick off ticker
-          openView('monitoring');
-        }, 750);
-      }, 700);
-    }, 600);
-  }
-
   var deploySignBtn = $('#deploySignBtn');
   var opsSignBtn = $('#opsSignBtn');
-  if (deploySignBtn) deploySignBtn.addEventListener('click', triggerWalletDeployment);
-  if (opsSignBtn) opsSignBtn.addEventListener('click', triggerWalletDeployment);
+  [deploySignBtn, opsSignBtn].filter(Boolean).forEach(function(button) {
+    button.disabled = true;
+    button.title = 'Deployment is disabled until a real compiler and compatible signing adapter are configured.';
+  });
 
   var deployCancelBtn = $('#deployCancelBtn');
   var opsCancelBtn = $('#opsCancelBtn');
   function cancelDeployment() {
     var statusHint = $('#deployStatusHint');
-    if (statusHint) statusHint.textContent = 'Deployment broadcast cancelled. Security gates remain locked.';
-    addAuditTrailEntry('Alex Rivera · Owner', 'Cancelled pending deployment transaction.');
+    if (statusHint) statusHint.textContent = 'No transaction was submitted. There is no active deployment to cancel.';
   }
   if (deployCancelBtn) deployCancelBtn.addEventListener('click', cancelDeployment);
   if (opsCancelBtn) opsCancelBtn.addEventListener('click', cancelDeployment);
@@ -1666,6 +1579,34 @@ export function initWorkspace(
   var dynamicNetworks = initialRequest.dynamicNetworks || [];
   var selectedTarget = null;
 
+  // Reference catalog for specification authoring. A catalog entry is selectable
+  // even when this app has no signing adapter for it; deployment is gated below.
+  var networkCatalog = {
+    Ethereum: [['Ethereum','Mainnet','1'],['Ethereum','Sepolia','11155111'],['Ethereum','Holesky','17000']],
+    Solana: [['Solana','Mainnet','mainnet-beta'],['Solana','Devnet','devnet'],['Solana','Testnet','testnet']],
+    Sei: [['Sei','Mainnet','1329'],['Sei','Testnet','1328']], Polygon: [['Polygon','Mainnet','137'],['Polygon','Amoy','80002']],
+    Arbitrum: [['Arbitrum','Mainnet','42161'],['Arbitrum','Sepolia','421614']], Optimism: [['Optimism','Mainnet','10'],['Optimism','Sepolia','11155420']],
+    Base: [['Base','Mainnet','8453'],['Base','Sepolia','84532']], Avalanche: [['Avalanche','Mainnet','43114'],['Avalanche','Fuji','43113']],
+    BNB: [['BNB Chain','Mainnet','56'],['BNB Chain','Testnet','97']], Fantom: [['Sonic','Mainnet','146'],['Fantom','Opera','250']],
+    Gnosis: [['Gnosis','Mainnet','100']], Celo: [['Celo','Mainnet','42220'],['Celo','Sepolia','11142220']], zkSync: [['zkSync Era','Mainnet','324'],['zkSync Era','Sepolia','300']],
+    Linea: [['Linea','Mainnet','59144'],['Linea','Sepolia','59141']], Scroll: [['Scroll','Mainnet','534352'],['Scroll','Sepolia','534351']], Mantle: [['Mantle','Mainnet','5000'],['Mantle','Sepolia','5003']],
+    Starknet: [['Starknet','Mainnet','SN_MAIN'],['Starknet','Sepolia','SN_SEPOLIA']], Sui: [['Sui','Mainnet','mainnet'],['Sui','Testnet','testnet']],
+    Aptos: [['Aptos','Mainnet','mainnet'],['Aptos','Testnet','testnet']], Cosmos: [['Cosmos','Hub','cosmoshub-4'],['Osmosis','Mainnet','osmosis-1']],
+    NEAR: [['NEAR','Mainnet','mainnet'],['NEAR','Testnet','testnet']], Polkadot: [['Polkadot','Asset Hub','polkadot'],['Kusama','Asset Hub','kusama']],
+    TON: [['TON','Mainnet','mainnet'],['TON','Testnet','testnet']], TRON: [['TRON','Mainnet','mainnet'],['TRON','Nile','nile']],
+    Algorand: [['Algorand','Mainnet','mainnet'],['Algorand','Testnet','testnet']], Cardano: [['Cardano','Mainnet','mainnet'],['Cardano','Preprod','preprod']],
+    Tezos: [['Tezos','Mainnet','mainnet'],['Tezos','Ghostnet','ghostnet']], Hedera: [['Hedera','Mainnet','mainnet'],['Hedera','Testnet','testnet']],
+    InternetComputer: [['Internet Computer','Mainnet','ic']], MultiversX: [['MultiversX','Mainnet','1'],['MultiversX','Testnet','T']],
+    Injective: [['Injective','Mainnet','injective-1'],['Injective','Testnet','injective-888']], Oasis: [['Oasis','Mainnet','23294'],['Oasis','Testnet','23295']],
+    Kava: [['Kava','Mainnet','2222'],['Kava','Testnet','2221']], Cronos: [['Cronos','Mainnet','25'],['Cronos','Testnet','338']], Moonbeam: [['Moonbeam','Mainnet','1284'],['Moonbeam','Moonbase Alpha','1287']],
+    Harmony: [['Harmony','Mainnet','1666600000']], Aurora: [['Aurora','Mainnet','1313161554']], Ronin: [['Ronin','Mainnet','2020']],
+    Immutable: [['Immutable zkEVM','Mainnet','13371'],['Immutable zkEVM','Testnet','13473']], Zora: [['Zora','Mainnet','7777777'],['Zora','Sepolia','999999999']], Blast: [['Blast','Mainnet','81457'],['Blast','Sepolia','168587773']],
+    Mode: [['Mode','Mainnet','34443'],['Mode','Sepolia','919']], Mantle: [['Mantle','Mainnet','5000'],['Mantle','Sepolia','5003']],
+    Berachain: [['Berachain','Mainnet','80094'],['Berachain','Bepolia','80069']], Abstract: [['Abstract','Mainnet','2741'],['Abstract','Testnet','11124']],
+    World: [['World Chain','Mainnet','480'],['World Chain','Sepolia','4801']], HyperEVM: [['HyperEVM','Mainnet','999'],['HyperEVM','Testnet','998']],
+    XLayer: [['X Layer','Mainnet','196'],['X Layer','Sepolia','195']], Monad: [['Monad','Mainnet','143'],['Monad','Testnet','10143']],
+  };
+
   function appendSelectOption(select, value, label, placeholder){
     var option = document.createElement('option');
     option.value = value;
@@ -1677,7 +1618,7 @@ export function initWorkspace(
 
   function getSelectedDynamicNetwork(){
     var selectedId = targetNetworkSelect && targetNetworkSelect.value;
-    return dynamicNetworks.find(function(network){ return network.id === selectedId; }) || null;
+    return allTargetNetworks.find(function(network){ return network.id === selectedId; }) || null;
   }
 
   function updateSelectedTarget(){
@@ -1687,32 +1628,34 @@ export function initWorkspace(
     }
   }
 
+  var allTargetNetworks = dynamicNetworks.slice();
   function populateNetworksForChain(){
-    if (!targetChainSelect || !targetNetworkSelect) return;
+    if (!targetNetworkSelect) return;
     var ecosystem = targetEcosystemSelect.value;
-    var chain = targetChainSelect.value;
     targetNetworkSelect.replaceChildren();
-    appendSelectOption(targetNetworkSelect, '', 'Choose network…', true);
-    dynamicNetworks.filter(function(network){
-      return network.ecosystem === ecosystem && network.chain === chain;
-    }).forEach(function(network){
-      appendSelectOption(targetNetworkSelect, network.id, network.networkName + (network.isTestnet ? ' · Testnet' : ' · Mainnet'));
+    appendSelectOption(targetNetworkSelect, '', 'Choose chain / network…', true);
+    (networkCatalog[ecosystem] || []).forEach(function(entry){
+      var chainName = entry[0], networkName = entry[1], chainId = entry[2];
+      var live = dynamicNetworks.find(function(n){ return n.ecosystem.toLowerCase() === ecosystem.toLowerCase() && String(n.chainId) === chainId; });
+      var item = live ? Object.assign({}, live, { chainName: chainName, networkName: networkName, catalogNetwork: true }) : {
+        id: 'catalog:' + ecosystem + ':' + chainId, ecosystem: ecosystem, chainName: chainName,
+        networkName: networkName, chain: chainId, chainId: chainId, networkId: chainId,
+        isTestnet: /test|dev|sepolia|amoy|holesky|fuji|ghost|preprod|bepolia/i.test(networkName), catalogNetwork: true,
+      };
+      var existing = allTargetNetworks.findIndex(function(n){ return n.id === item.id; });
+      if (existing < 0) allTargetNetworks.push(item); else allTargetNetworks[existing] = item;
+      var dynamicMatch = !!live;
+      appendSelectOption(targetNetworkSelect, item.id, chainName + ' — ' + networkName + (dynamicMatch ? '' : ' (specification only)'));
     });
-    updateSelectedTarget();
-  }
-
-  function populateChainsForEcosystem(){
-    if (!targetChainSelect) return;
-    var ecosystem = targetEcosystemSelect.value;
-    targetChainSelect.replaceChildren();
-    appendSelectOption(targetChainSelect, '', 'Choose chain…', true);
-    var chains = {};
-    dynamicNetworks.filter(function(network){ return network.ecosystem === ecosystem; }).forEach(function(network){
-      if (!chains[network.chain]) chains[network.chain] = network.chainName || (ecosystem.toUpperCase() + ' · ' + network.chain);
+    // Keep provider-configured chains visible even when the curated registry has
+    // not yet been extended. Their provider metadata remains attached for later use.
+    dynamicNetworks.filter(function(n){ return n.ecosystem.toLowerCase() === ecosystem.toLowerCase(); }).forEach(function(n){
+      if (targetNetworkSelect.querySelector('option[value="' + CSS.escape(n.id) + '"]')) return;
+      var chainName = n.chainName || (ecosystem + ' ' + n.chainId);
+      var networkName = n.networkName || (n.isTestnet ? 'Testnet' : 'Mainnet');
+      allTargetNetworks.push(n);
+      appendSelectOption(targetNetworkSelect, n.id, chainName + ' — ' + networkName);
     });
-    Object.keys(chains).forEach(function(chain){ appendSelectOption(targetChainSelect, chain, chains[chain]); });
-    targetNetworkSelect.replaceChildren();
-    appendSelectOption(targetNetworkSelect, '', 'Choose network…', true);
     updateSelectedTarget();
   }
 
@@ -1721,25 +1664,23 @@ export function initWorkspace(
     var targetNotice = $('#targetNetworkNotice');
     targetEcosystemSelect.replaceChildren();
     appendSelectOption(targetEcosystemSelect, '', 'Choose ecosystem…', true);
-    var ecosystems = Array.from(new Set(dynamicNetworks.map(function(network){ return network.ecosystem; })));
+    var ecosystems = Array.from(new Set(Object.keys(networkCatalog).concat(dynamicNetworks.map(function(network){ return network.ecosystem; }))));
     if (targetNotice) {
       targetNotice.textContent = ecosystems.length
-        ? 'Only ecosystems and networks enabled in this Dynamic environment are listed.'
-        : 'Dynamic has not provided any configured networks for this environment. Configure supported networks in Dynamic and reload to continue.';
+        ? 'Networks marked specification only can be specified, but cannot be deployed until a compatible wallet adapter is available.'
+        : 'Choose ecosystem and network. Deployment requires a compatible signing wallet and compiler.';
     }
     ecosystems.forEach(function(ecosystem){
       var option = document.createElement('option');
       option.value = ecosystem;
-      option.textContent = ecosystem.toUpperCase();
+      option.textContent = ecosystem;
       if (initialRequest.ecosystemHint && ecosystem.toLowerCase() === initialRequest.ecosystemHint.toLowerCase()) {
         option.selected = true;
       }
       targetEcosystemSelect.appendChild(option);
     });
-    appendSelectOption(targetChainSelect, '', 'Choose chain…', true);
-    appendSelectOption(targetNetworkSelect, '', 'Choose network…', true);
-    targetEcosystemSelect.addEventListener('change', populateChainsForEcosystem);
-    targetChainSelect.addEventListener('change', populateNetworksForChain);
+    appendSelectOption(targetNetworkSelect, '', 'Choose chain / network…', true);
+    targetEcosystemSelect.addEventListener('change', populateNetworksForChain);
     targetNetworkSelect.addEventListener('change', updateSelectedTarget);
     if (targetEcosystemSelect.value) populateChainsForEcosystem();
   }

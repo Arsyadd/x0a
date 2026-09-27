@@ -12,8 +12,7 @@ export const workspaceMarkup = `
 </div>
 <section class="onboardTarget" aria-label="Deployment target">
 <label><span>Ecosystem</span><select id="targetEcosystem" aria-label="Choose ecosystem"></select></label>
-<label><span>Chain</span><select id="targetChain" aria-label="Choose chain"></select></label>
-<label><span>Network</span><select id="targetNetwork" aria-label="Choose network"></select></label>
+<label class="onboardTarget__chain"><span>Chain / Network</span><select id="targetNetwork" aria-label="Choose chain and network"></select></label>
 <p id="targetNetworkNotice" class="onboardTarget__notice" role="status"></p>
 </section>
 <div class="onboard__body">
@@ -839,16 +838,16 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <div class="docBlock" id="pendingDeployCard">
 <h3 id="deployCardTitle">Pending deployment</h3>
 <div class="fieldGrid">
-<div class="field"><dt>Target</dt><dd id="deployTargetText">VaultCore + ShareToken + RewardsDistributor</dd></div>
-<div class="field"><dt>Network</dt><dd id="deployNetworkText">Base Sepolia<span>Testnet &middot; chain id 84532</span></dd></div>
-<div class="field"><dt>Estimated cost</dt><dd>~0.014 ETH<span>&asymp; $34 at broadcast time</span></dd></div>
-<div class="field"><dt>Transaction</dt><dd id="deployTxText">3 creations<span>+ 1 initialize call</span></dd></div>
+<div class="field"><dt>Target</dt><dd id="deployTargetText">No compiled deployment artifact</dd></div>
+<div class="field"><dt>Network</dt><dd id="deployNetworkText">Select in Specifications<span>Not connected</span></dd></div>
+<div class="field"><dt>Estimated cost</dt><dd>Unavailable<span>Requires compiled bytecode and RPC estimation</span></dd></div>
+<div class="field"><dt>Transaction</dt><dd id="deployTxText">Not prepared<span>No transaction submitted</span></dd></div>
 </div>
 <div class="opsActions" style="max-width:24rem;margin-top:1rem">
 <button class="btn-ghost" id="deployCancelBtn" type="button">Cancel</button>
-<button class="btn-primary" id="deploySignBtn" type="button">Sign &amp; continue</button>
+<button class="btn-primary" id="deploySignBtn" type="button">Deployment unavailable</button>
 </div>
-<p class="opsHint" id="deployStatusHint">Waiting on the connected Safe (2-of-3) &mdash; click "Sign &amp; continue" to simulate real-time broadcast.</p>
+<p class="opsHint" id="deployStatusHint">No real compiler and ecosystem wallet adapter are configured. Deployment is blocked; no simulated deployment will be recorded.</p>
 </div>
 <div class="docBlock">
 <h3>History</h3>
@@ -856,7 +855,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <table class="dataTable">
 <thead><tr><th>Target</th><th>Status</th><th>When</th></tr></thead>
 <tbody id="deployHistoryTable">
-<tr><td>Local Anvil</td><td><span class="statusTag statusTag--resolved"><i></i>Deployed &amp; verified (dev)</span></td><td class="tblMuted">2d ago</td></tr>
+<tr><td colspan="3" class="tblMuted">No confirmed deployments.</td></tr>
 </tbody>
 </table>
 </div>
@@ -1017,7 +1016,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <h3>Deployment preview</h3>
 <dl class="opsKV">
 <div><dt>Target</dt><dd>3 contracts</dd></div>
-<div><dt>Network</dt><dd>Base Sepolia</dd></div>
+<div><dt>Network</dt><dd>Not selected</dd></div>
 <div><dt>Est. cost</dt><dd>~0.014 ETH</dd></div>
 <div><dt>Transaction</dt><dd>3 + 1 call</dd></div>
 </dl>
@@ -1026,7 +1025,7 @@ base_sepolia = { key = "\${BASESCAN_API_KEY}" }
 <h3>Wallet</h3>
 <div class="walletRow">
 <span class="walletDot"></span>
-<div><b>0x8fA2&hellip;c19B</b><span>Safe (2-of-3) &middot; Base Sepolia</span></div>
+<div><b>No compatible wallet</b><span>Connect a supported signing wallet to deploy</span></div>
 </div>
 <div class="opsActions">
 <button class="btn-ghost" id="opsCancelBtn" type="button">Cancel</button>
