@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DynamicWidget } from '@dynamic-labs/sdk-react-core';
+import { DynamicWidget } from './auth/dynamicAuth.tsx';
 import type { ProjectIntake, ProjectSourceFile } from './types/projectIntake';
 import './app.css';
 
@@ -514,7 +514,7 @@ export default function HomeApp({
                         onClick={() => {
                           if (tool === 'source') sourceInputRef.current?.click();
                           else if (tool === 'repo') setReferenceFormOpen(open => !open);
-                          else alert(`${tool.toUpperCase()} input option selected.`);
+                          else setChannelNotice(`${tool.toUpperCase()} input option selected.`);
                         }}
                       >
                         {tool === 'source' && 'Attach files'}
@@ -591,7 +591,13 @@ export default function HomeApp({
                   <button className="recent__all" onClick={() => setSidebarOpen(true)}>View all projects</button>
                 </div>
                 <div className="recent__grid">
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build a yield vault that takes deposits, issues shares and streams rewards.', ecosystemHint: 'evm' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build a yield vault that takes deposits, issues shares and streams rewards.', ecosystemHint: 'evm' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" aria-hidden="true">
@@ -607,7 +613,13 @@ export default function HomeApp({
                     <div className="pcard__meta"><span>Testnet</span><span>12m ago</span></div>
                   </article>
 
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build a liquid staking program for Solana that delegates SOL, mints liquid staking tokens, and processes unstake cooldowns.', ecosystemHint: 'solana' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build a liquid staking program for Solana that delegates SOL, mints liquid staking tokens, and processes unstake cooldowns.', ecosystemHint: 'solana' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
@@ -623,7 +635,13 @@ export default function HomeApp({
                     <div className="pcard__meta"><span>Devnet</span><span>2h ago</span></div>
                   </article>
 
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build an upgradeable perpetual router contract with oracle-priced funding rates and liquidations.', ecosystemHint: 'evm' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build an upgradeable perpetual router contract with oracle-priced funding rates and liquidations.', ecosystemHint: 'evm' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" aria-hidden="true">
@@ -639,7 +657,13 @@ export default function HomeApp({
                     <div className="pcard__meta"><span>Mainnet</span><span>1d ago</span></div>
                   </article>
 
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build a Sui Move marketplace for digital objects with kiosk capabilities and creator royalties.', ecosystemHint: 'sui' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build a Sui Move marketplace for digital objects with kiosk capabilities and creator royalties.', ecosystemHint: 'sui' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" aria-hidden="true">
@@ -655,7 +679,13 @@ export default function HomeApp({
                     <div className="pcard__meta"><span>Testnet</span><span>3d ago</span></div>
                   </article>
 
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build a Starknet Cairo European options vault with automated roll and settlement.', ecosystemHint: 'starknet' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build a Starknet Cairo European options vault with automated roll and settlement.', ecosystemHint: 'starknet' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinejoin="round" aria-hidden="true">
@@ -671,7 +701,13 @@ export default function HomeApp({
                     <div className="pcard__meta"><span>Testnet</span><span>4d ago</span></div>
                   </article>
 
-                  <article className="pcard">
+                  <article
+                    className="pcard"
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onOpenWorkspace({ prompt: 'Build a multi-sig treasury timelock validator with delay periods and emergency pause.', ecosystemHint: 'cardano' })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenWorkspace({ prompt: 'Build a multi-sig treasury timelock validator with delay periods and emergency pause.', ecosystemHint: 'cardano' }); } }}
+                  >
                     <div className="pcard__top">
                       <span className="pcard__eco">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">

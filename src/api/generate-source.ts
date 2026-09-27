@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { isDynamicRequestAuthorized } from '../server/dynamicAuth';
-import { generateSourceCode } from '../server/sourceGenerator';
+import { isDynamicRequestAuthorized } from '../server/dynamicAuth.ts';
+import { generateSourceCode } from '../server/sourceGenerator.ts';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;

@@ -24,7 +24,11 @@
   --tok-com:rgba(244,244,247,.4); --tok-fn:#9CB3FF; --tok-punc:rgba(244,244,247,.5);
 }
 .x0a-workspace-root *,.x0a-workspace-root *::before,.x0a-workspace-root *::after{box-sizing:border-box}
-.x0a-workspace-root{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
+.x0a-workspace-host{width:100%;min-height:100vh;min-height:100svh;overflow-x:hidden;scrollbar-width:none !important;-ms-overflow-style:none !important}
+.x0a-workspace-host ::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
+.x0a-workspace-root{-webkit-text-size-adjust:100%;scrollbar-gutter:auto;scrollbar-width:none !important;-ms-overflow-style:none !important}
+.x0a-workspace-root, .x0a-workspace-root *{scrollbar-width:none !important;-ms-overflow-style:none !important}
+.x0a-workspace-root ::-webkit-scrollbar, .x0a-workspace-root *::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important;background:transparent !important}
 .x0a-workspace-root{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:1rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .x0a-workspace-root button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .x0a-workspace-root a{color:inherit;text-decoration:none}
@@ -99,7 +103,7 @@
 .x0a-workspace-root .sidebar__projectsHead span{font-size:.7rem;font-weight:600;letter-spacing:.01em;color:var(--muted)}
 .x0a-workspace-root .sidebar__viewAll{font-size:.7rem;color:var(--muted);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line)}
 .x0a-workspace-root .sidebar__viewAll:hover{color:var(--fg)}
-.x0a-workspace-root .plist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:.05rem;margin:0 -.2rem;scrollbar-width:thin}
+.x0a-workspace-root .plist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:.05rem;margin:0 -.2rem;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .plist__item{display:flex;align-items:flex-start;gap:.6rem;width:100%;padding:.5rem .55rem;border-radius:10px;text-align:left;transition:background .2s}
 .x0a-workspace-root .plist__item:hover,.x0a-workspace-root .plist__item.is-active{background:var(--surface2)}
 .x0a-workspace-root .plist__icon{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--surface2);color:var(--blue-soft);margin-top:.05rem}
@@ -134,7 +138,7 @@
 .x0a-workspace-root .modal__close:hover{background:var(--surface2);color:var(--fg)}
 .x0a-workspace-root .modal__close svg{width:16px;height:16px}
 
-.x0a-workspace-root .modal__body{flex:1;min-height:0;overflow-y:auto;padding:1rem 1.4rem;display:flex;flex-direction:column;gap:1rem;scrollbar-width:thin}
+.x0a-workspace-root .modal__body{flex:1;min-height:0;overflow-y:auto;padding:1rem 1.4rem;display:flex;flex-direction:column;gap:1rem;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .modal__foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.4rem;border-top:1px solid var(--line);flex:none;background:var(--surface)}
 
 .x0a-workspace-root .acct__item{display:flex;align-items:center;gap:.55rem;padding:.65rem .75rem;border-radius:10px;font-size:.82rem;color:var(--fg);transition:background .2s}
@@ -147,7 +151,7 @@
 .x0a-workspace-root .pop--notif{display:flex;flex-direction:column;width:min(400px,calc(100vw - 2 * var(--edge)));max-width:none;max-height:min(76vh,580px);padding:0;overflow:hidden;transform-origin:top right}
 .x0a-workspace-root .notif__head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.95rem 1rem .75rem;flex:none}
 .x0a-workspace-root .notif__head h2{font-size:.95rem;font-weight:560;letter-spacing:-.01em}
-.x0a-workspace-root .notif__list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--line);padding:.35rem;display:flex;flex-direction:column;gap:.1rem;scrollbar-width:thin}
+.x0a-workspace-root .notif__list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--line);padding:.35rem;display:flex;flex-direction:column;gap:.1rem;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .nitem{--tone:var(--blue-soft);--tone-dim:var(--blue-dim);display:flex;align-items:flex-start;gap:.7rem;width:100%;padding:.7rem .65rem;border-radius:12px;text-align:left;transition:background .2s}
 .x0a-workspace-root .nitem[data-tone="ok"]{--tone:var(--ok);--tone-dim:rgba(60,214,192,.13)}
 .x0a-workspace-root .nitem[data-tone="warn"]{--tone:var(--warn);--tone-dim:rgba(255,179,92,.13)}
@@ -260,7 +264,7 @@
 .x0a-workspace-root .explorer__head{display:flex;align-items:center;justify-content:space-between;padding:.85rem .9rem .7rem;flex:none}
 .x0a-workspace-root .explorer__title{font-size:.7rem;font-weight:600;letter-spacing:.01em;color:var(--muted)}
 .x0a-workspace-root .explorer__close{display:flex;width:32px;height:32px;border-radius:9px;color:var(--muted);align-items:center;justify-content:center}
-.x0a-workspace-root .explorer__scroll{flex:1;min-height:0;overflow-y:auto;padding:0 .55rem .8rem;scrollbar-width:thin}
+.x0a-workspace-root .explorer__scroll{flex:1;min-height:0;overflow-y:auto;padding:0 .55rem .8rem;scrollbar-width:none;-ms-overflow-style:none}
 @media (min-width:860px){
   .x0a-workspace-root .explorer{position:static;flex:none;width:264px;z-index:auto;transform:none;transition:none;box-shadow:none}
   .x0a-workspace-root .explorer__close{display:none}
@@ -297,7 +301,7 @@
 
 /* ---- Center pane ---- */
 .x0a-workspace-root .center{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-.x0a-workspace-root .centerScroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.x0a-workspace-root .centerScroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .view{padding:1.4rem clamp(1rem,3vw,2.4rem) 3rem}
 .x0a-workspace-root .view[hidden]{display:none}
 .x0a-workspace-root .view__intro{max-width:62ch;margin-bottom:1.3rem}
@@ -478,7 +482,7 @@
   .x0a-workspace-root .ops{position:static;flex:none;width:296px;z-index:auto;transform:none;transition:none;box-shadow:none}
   .x0a-workspace-root .ops__close{display:none}
 }
-.x0a-workspace-root .ops__scroll{flex:1;min-height:0;overflow-y:auto;padding:0 .9rem .9rem;scrollbar-width:thin;display:flex;flex-direction:column;gap:.7rem}
+.x0a-workspace-root .ops__scroll{flex:1;min-height:0;overflow-y:auto;padding:0 .9rem .9rem;scrollbar-width:none;-ms-overflow-style:none;display:flex;flex-direction:column;gap:.7rem}
 
 .x0a-workspace-root .opsCard{padding:.9rem .95rem;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
 .x0a-workspace-root .opsCard--muted{opacity:.7}
@@ -529,6 +533,9 @@
 .x0a-workspace-root .statusPill--ok{color:var(--ok);background:rgba(60,214,192,.12)}
 .x0a-workspace-root .statusPill--warn{color:var(--warn);background:rgba(255,179,92,.12)}
 
+.x0a-workspace-root .wsTopWalletBtn{display:inline-flex;align-items:center;gap:.4rem;padding:.32rem .75rem;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--fg);font-family:var(--mono);font-size:.74rem;cursor:pointer;transition:all .2s ease;white-space:nowrap}
+.x0a-workspace-root .wsTopWalletBtn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.24)}
+
 /* =========================================================
    Mobile-first responsive scale
    Everything above this point (and the base rules below) is tuned for
@@ -538,21 +545,24 @@
 
 /* ---- Base (phones, <640px) ---- */
 @media (max-width:639px){
-  .x0a-workspace-root .topbar{gap:.45rem;padding:.55rem 1rem}
-  .x0a-workspace-root .topbar__left{gap:.45rem}
+  .x0a-workspace-root .topbar{gap:.45rem;padding:.55rem .85rem}
+  .x0a-workspace-root .topbar__left{gap:.45rem;min-width:0}
   .x0a-workspace-root .topbar__brand{gap:.35rem}
   .x0a-workspace-root .crumb{font-size:.82rem}
-  .x0a-workspace-root .topbar__right{gap:0}
-  .x0a-workspace-root .wsToolbar{flex-wrap:wrap;gap:.35rem;overflow:hidden;padding:.45rem 1rem}
-  .x0a-workspace-root .wsSwitch{flex:1 1 0;min-width:0;margin:0;overflow-x:auto;scrollbar-width:none}
+  .x0a-workspace-root .topbar__right{gap:.35rem}
+  .x0a-workspace-root .wsTopWalletBtn{padding:.26rem .55rem;font-size:.7rem;gap:.3rem}
+  .x0a-workspace-root .wsToolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:.35rem;overflow-x:auto;scrollbar-width:none;padding:.4rem .75rem}
+  .x0a-workspace-root .wsToolbar::-webkit-scrollbar{display:none}
+  .x0a-workspace-root .wsSwitch{flex:1 1 auto;min-width:0;margin:0;overflow-x:auto;scrollbar-width:none}
   .x0a-workspace-root .wsSwitch::-webkit-scrollbar{display:none}
-  .x0a-workspace-root .wsSwitch button{flex:none;padding:.35rem .62rem;font-size:.7rem}
-  .x0a-workspace-root .wsToolbar__right{flex:1 1 100%;min-width:0;width:100%;margin:.05rem 0 0;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
-  .x0a-workspace-root .wsToolbar__right::-webkit-scrollbar{display:none}
+  .x0a-workspace-root .wsSwitch button{flex:none;padding:.32rem .62rem;font-size:.7rem}
+  .x0a-workspace-root .wsToolbar__right{flex:none;margin:0;gap:.3rem;justify-content:flex-end}
+  .x0a-workspace-root .envChip{max-width:115px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .x0a-workspace-root .envChip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .x0a-workspace-root .wsTabs__back{padding:0 .65rem}
   .x0a-workspace-root .wtab{gap:.4rem;padding:0 .7rem;font-size:.74rem}
   .x0a-workspace-root .wsTabs__meta{padding:0 .45rem}
-  .x0a-workspace-root .wsPath{padding:.45rem 1rem;font-size:.74rem}
+  .x0a-workspace-root .wsPath{padding:.4rem .75rem;font-size:.72rem}
   .x0a-workspace-root .statusbar{gap:.7rem;padding:.4rem 1rem max(.4rem,env(safe-area-inset-bottom));font-size:.65rem}
 }
 .x0a-workspace-root .view{padding:1.1rem 1rem 2.4rem}
@@ -651,7 +661,7 @@
 .x0a-workspace-root .onboardTarget select:focus-visible{outline:2px solid var(--blue-soft);outline-offset:1px}
 .x0a-workspace-root .onboardTarget__notice{grid-column:1/-1;font-size:.66rem;color:var(--muted-2);line-height:1.4}
 
-.x0a-workspace-root .onboard__body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.x0a-workspace-root .onboard__body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
 .x0a-workspace-root .onboard__log{max-width:42rem;margin:0 auto;padding:1.6rem var(--edge) 2rem}
 
 .x0a-workspace-root .onboard__foot{flex:none;border-top:1px solid var(--line);padding:.9rem var(--edge) max(.9rem,env(safe-area-inset-bottom))}
@@ -706,7 +716,7 @@
 .x0a-workspace-root #opsPanelChat{height:100%;min-height:0}
 .x0a-workspace-root #opsPanelChat[hidden]{display:none}
 .x0a-workspace-root .agentChat{display:flex;flex-direction:column;height:100%;min-height:0}
-.x0a-workspace-root .agentChat__log{flex:1;min-height:0;overflow-y:auto;padding:.9rem .95rem;scrollbar-width:thin;justify-content:flex-end}
+.x0a-workspace-root .agentChat__log{flex:1;min-height:0;overflow-y:auto;padding:.9rem .95rem;scrollbar-width:none;-ms-overflow-style:none;justify-content:flex-end}
 .x0a-workspace-root .agentChat__suggestions{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;padding:.65rem .95rem;border-top:1px solid var(--line)}
 .x0a-workspace-root .agentChat__composer{flex:none;display:flex;align-items:center;gap:.5rem;margin:.7rem .95rem max(.7rem,env(safe-area-inset-bottom));padding:.3rem .3rem .3rem .95rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);transition:border-color .15s}
 .x0a-workspace-root .agentChat__composer:focus-within{border-color:var(--blue-soft)}

@@ -36,6 +36,34 @@
                         }
                         updated = true;
                       }
+                      if (Array.isArray(obj.networks)) {
+                        obj.networks.forEach(function(group) {
+                          if (group && Array.isArray(group.networks)) {
+                            group.networks.forEach(function(n) {
+                              if (!n.rpcUrls || !Array.isArray(n.rpcUrls) || n.rpcUrls.length === 0 || !n.rpcUrls[0]) {
+                                n.rpcUrls = ['https://cloudflare-eth.com'];
+                                updated = true;
+                              }
+                            });
+                          }
+                        });
+                      }
+                      if (Array.isArray(obj.chains)) {
+                        obj.chains.forEach(function(c) {
+                          if (c && Array.isArray(c.networks)) {
+                            c.networks.forEach(function(n) {
+                              if (!n.rpcUrls || !Array.isArray(n.rpcUrls) || n.rpcUrls.length === 0 || !n.rpcUrls[0]) {
+                                n.rpcUrls = ['https://cloudflare-eth.com'];
+                                updated = true;
+                              }
+                              if (!n.rpcUrl) {
+                                n.rpcUrl = n.rpcUrls[0];
+                                updated = true;
+                              }
+                            });
+                          }
+                        });
+                      }
                       for (var prop in obj) {
                         if (obj.hasOwnProperty(prop) && typeof obj[prop] === 'object') {
                           sanitize(obj[prop]);
@@ -130,10 +158,47 @@
                           modified = true;
                         }
 
+                        var defaultRpcs = {
+                          '1': 'https://cloudflare-eth.com',
+                          '11155111': 'https://rpc.sepolia.org',
+                          '8453': 'https://mainnet.base.org',
+                          '84532': 'https://sepolia.base.org',
+                          '42161': 'https://arb1.arbitrum.io/rpc',
+                          '421614': 'https://sepolia-rollup.arbitrum.io/rpc',
+                          '10': 'https://mainnet.optimism.io',
+                          '137': 'https://polygon-rpc.com',
+                          '11297108109': 'https://palm-mainnet.public.blastapi.io'
+                        };
+
+                        if (Array.isArray(data.networks)) {
+                          data.networks.forEach(function(group) {
+                            if (group && Array.isArray(group.networks)) {
+                              group.networks.forEach(function(net) {
+                                if (!net.rpcUrls || !Array.isArray(net.rpcUrls) || net.rpcUrls.length === 0 || !net.rpcUrls[0]) {
+                                  var fallback = defaultRpcs[String(net.chainId)] || defaultRpcs[String(net.networkId)] || 'https://cloudflare-eth.com';
+                                  net.rpcUrls = [fallback];
+                                  modified = true;
+                                }
+                              });
+                            }
+                          });
+                        }
+
                         if (Array.isArray(data.chains)) {
                           data.chains = data.chains.map(function(c) {
                             var name = String(c.name || '').toUpperCase();
                             var isEvm = name === 'EVM' || name === 'ETH';
+                            if (isEvm && Array.isArray(c.networks)) {
+                              c.networks.forEach(function(net) {
+                                var fallback = defaultRpcs[String(net.networkId)] || 'https://cloudflare-eth.com';
+                                if (!net.rpcUrls || !Array.isArray(net.rpcUrls) || net.rpcUrls.length === 0 || !net.rpcUrls[0]) {
+                                  net.rpcUrls = [fallback];
+                                }
+                                if (!net.rpcUrl) {
+                                  net.rpcUrl = net.rpcUrls[0];
+                                }
+                              });
+                            }
                             return Object.assign({}, c, { enabled: isEvm });
                           });
                           modified = true;

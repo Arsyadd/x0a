@@ -1,5 +1,5 @@
-import { getGeminiApiKey } from './geminiConfig';
-import { callGemini, SchemaType } from './geminiClient';
+import { getGeminiApiKey } from './geminiConfig.ts';
+import { callGemini, SchemaType } from './geminiClient.ts';
 
 const stringFields = [
   'projectName',

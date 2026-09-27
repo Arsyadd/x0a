@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
+import { useDynamicContext, useIsLoggedIn } from './auth/dynamicAuth.tsx';
 
 import LandingPage from './LandingPage';
 import HomeApp from './HomeApp';

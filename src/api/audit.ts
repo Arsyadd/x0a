@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { isDynamicRequestAuthorized } from '../server/dynamicAuth';
-import { auditCode } from '../server/securityAudit';
+import { isDynamicRequestAuthorized } from '../server/dynamicAuth.ts';
+import { auditCode } from '../server/securityAudit.ts';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;

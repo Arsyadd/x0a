@@ -1,34 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core';
-import { EthereumWalletConnectors } from '@dynamic-labs/ethereum';
+import { DynamicAuthProvider } from './auth/dynamicAuth.tsx';
 import App from './App.tsx';
 import './index.css';
 
-/**
- * Dynamic environment ID, read from VITE_DYNAMIC_ENVIRONMENT_ID (.env).
- * Get one at https://console.dynamic.xyz/dashboard/developer/api
- */
-const dynamicEnvironmentId = import.meta.env.VITE_DYNAMIC_ENVIRONMENT_ID;
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <DynamicContextProvider
-      settings={{
-        environmentId: dynamicEnvironmentId,
-        walletConnectors: [EthereumWalletConnectors],
-        cssOverrides: `
-          .overlay-card-base__overlay {
-            background-color: rgba(0, 0, 0, 0.78) !important;
-          }
-          .overlay-card-base__content {
-            background-color: #101014 !important;
-            opacity: 1 !important;
-          }
-        `,
-      }}
-    >
+    <DynamicAuthProvider>
       <App />
-    </DynamicContextProvider>
+    </DynamicAuthProvider>
   </StrictMode>,
 );
+

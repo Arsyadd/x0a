@@ -6,8 +6,8 @@ export interface ProjectSourceFile {
 export interface ProjectIntake {
   prompt: string;
   ecosystemHint?: string;
-  files: ProjectSourceFile[];
-  links: string[];
+  files?: ProjectSourceFile[];
+  links?: string[];
   dynamicNetworks?: DynamicNetworkOption[];
 }
 

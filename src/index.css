@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+/* =========================================================
+   Universal scrollbar concealment
+   Completely removes visible vertical and horizontal scrollbars
+   across all browsers, operating systems, and nested containers.
+   ========================================================= */
+html,
+body,
+#root,
+.app-scope,
+.x0a-workspace-root,
+.x0a-workspace-host {
+  overflow-x: hidden;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
+
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  background: transparent !important;
+}
+
 /* Page Transition Wipe (identical to landing navbar transition) */
 .app-wipe {
   position: fixed;

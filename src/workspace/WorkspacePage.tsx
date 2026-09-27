@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useDynamicContext, useIsLoggedIn } from '../auth/dynamicAuth.tsx';
 import { workspaceMarkup } from './workspaceMarkup';
 import { initWorkspace } from './legacyWorkspace';
 import type { DynamicNetworkOption, ProjectIntake } from '../types/projectIntake';
@@ -31,7 +31,16 @@ export default function WorkspacePage({
   onNavigateHome,
 }: WorkspacePageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const { networkConfigurations, sdkHasLoaded } = useDynamicContext();
+  const {
+    networkConfigurations,
+    sdkHasLoaded,
+    primaryWallet,
+    user,
+    handleLogOut,
+    setShowAuthFlow,
+  } = useDynamicContext();
+  const isLoggedIn = useIsLoggedIn();
+
   const dynamicNetworks = useMemo<DynamicNetworkOption[]>(() => {
     if (!sdkHasLoaded || !networkConfigurations) return [];
     return Object.entries(networkConfigurations).flatMap(([ecosystem, networks]) =>
@@ -47,6 +56,7 @@ export default function WorkspacePage({
       })),
     );
   }, [networkConfigurations, sdkHasLoaded]);
+
   const resolvedRequest = useMemo<ProjectIntake>(() => ({
     ...(initialRequest || { prompt: initialPrompt, files: [], links: [] }),
     prompt: initialRequest?.prompt || initialPrompt,
@@ -66,10 +76,30 @@ export default function WorkspacePage({
       initialPrompt: initialPrompt.trim(),
       initialRequest: resolvedRequest,
       onNavigateHome,
+      wallet: primaryWallet ? {
+        address: primaryWallet.address,
+        chain: primaryWallet.chain || 'EVM',
+      } : undefined,
+      user: user ? {
+        email: user.email,
+        username: user.username,
+      } : undefined,
+      isLoggedIn,
+      onLogOut: handleLogOut,
+      onConnectWallet: () => setShowAuthFlow(true),
     });
 
     return undefined;
-  }, [initialPrompt, resolvedRequest, onNavigateHome]);
+  }, [
+    initialPrompt,
+    resolvedRequest,
+    onNavigateHome,
+    isLoggedIn,
+    primaryWallet,
+    user,
+    handleLogOut,
+    setShowAuthFlow,
+  ]);
 
   return (
     <div className="x0a-workspace-host">

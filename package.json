@@ -7,7 +7,7 @@
     "dev": "tsx server.ts",
     "build": "vite build && npm run build:api",
     "build:api": "esbuild src/api/specification.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/specification.js && esbuild src/api/generate-source.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/generate-source.js && esbuild src/api/chat.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/agent/chat.js && esbuild src/api/audit.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/agent/audit.js",
-    "start": "tsx server.ts",
+    "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
@@ -27,6 +27,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "three": "^0.186.1",
+    "tsx": "^4.21.0",
     "viem": "^2.56.9",
     "vite": "^8.3.0"
   },
@@ -38,7 +39,6 @@
     "@types/three": "^0.186.0",
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.21.0",
     "typescript": "^7.0.2"
   }
 }

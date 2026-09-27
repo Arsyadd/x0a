@@ -1,4 +1,4 @@
-import { getGeminiApiKey } from './geminiConfig';
+import { getGeminiApiKey } from './geminiConfig.ts';
 
 const CANDIDATE_MODELS = [
   'gemini-3.8-flash',

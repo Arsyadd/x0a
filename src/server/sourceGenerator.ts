@@ -1,6 +1,6 @@
-import type { Specification } from './specification';
-import { getGeminiApiKey } from './geminiConfig';
-import { callGemini, SchemaType } from './geminiClient';
+import type { Specification } from './specification.ts';
+import { getGeminiApiKey } from './geminiConfig.ts';
+import { callGemini, SchemaType } from './geminiClient.ts';
 
 export interface GeneratedFile {
   name: string;

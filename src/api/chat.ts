@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { isDynamicRequestAuthorized } from '../server/dynamicAuth';
-import { handleAgentChat } from '../server/agentChat';
+import { isDynamicRequestAuthorized } from '../server/dynamicAuth.ts';
+import { handleAgentChat } from '../server/agentChat.ts';
 
 interface ExtendedRequest extends IncomingMessage {
   body?: any;
