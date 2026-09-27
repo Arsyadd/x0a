@@ -1660,7 +1660,7 @@ export function initWorkspace(
   }
 
   function initializeDynamicNetworkSelectors(){
-    if (!targetEcosystemSelect || !targetChainSelect || !targetNetworkSelect) return;
+    if (!targetEcosystemSelect || !targetNetworkSelect) return;
     var targetNotice = $('#targetNetworkNotice');
     targetEcosystemSelect.replaceChildren();
     appendSelectOption(targetEcosystemSelect, '', 'Choose ecosystem…', true);
@@ -1670,11 +1670,15 @@ export function initWorkspace(
         ? 'Networks marked specification only can be specified, but cannot be deployed until a compatible wallet adapter is available.'
         : 'Choose ecosystem and network. Deployment requires a compatible signing wallet and compiler.';
     }
+    var promptText = (initialRequest.prompt || initialPrompt || '').toLowerCase();
+    var inferredEcosystem = initialRequest.ecosystemHint || ecosystems.find(function(name) {
+      return new RegExp('(^|[^a-z0-9])' + name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(promptText);
+    });
     ecosystems.forEach(function(ecosystem){
       var option = document.createElement('option');
       option.value = ecosystem;
       option.textContent = ecosystem;
-      if (initialRequest.ecosystemHint && ecosystem.toLowerCase() === initialRequest.ecosystemHint.toLowerCase()) {
+      if (inferredEcosystem && ecosystem.toLowerCase() === inferredEcosystem.toLowerCase()) {
         option.selected = true;
       }
       targetEcosystemSelect.appendChild(option);
@@ -1682,7 +1686,7 @@ export function initWorkspace(
     appendSelectOption(targetNetworkSelect, '', 'Choose chain / network…', true);
     targetEcosystemSelect.addEventListener('change', populateNetworksForChain);
     targetNetworkSelect.addEventListener('change', updateSelectedTarget);
-    if (targetEcosystemSelect.value) populateChainsForEcosystem();
+    if (targetEcosystemSelect.value) populateNetworksForChain();
   }
 
   initializeDynamicNetworkSelectors();
